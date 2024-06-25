@@ -23,3 +23,6 @@ while IFS= read -r package; do
     echo "$package is already installed."
   fi
 done < "$PACKAGE_LIST"
+
+
+sodo chsh -s $(which zsh)

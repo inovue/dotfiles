@@ -1,3 +1,4 @@
+zsh
 gcc
 dbus-x11
 x11-apps
