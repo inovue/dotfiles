@@ -1,0 +1,7 @@
+gcc
+dbus-x11
+x11-apps
+weston
+upower
+language-selector-common
+language-pack-ja
