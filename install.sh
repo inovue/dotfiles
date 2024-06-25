@@ -1,3 +1,5 @@
 #!/bin/bash
 
-for d in *(/); stow -v -t ~/ -S $d
+for i in "$(ls -d */)"; do 
+  stow "$i"
+done
