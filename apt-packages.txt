@@ -1,5 +1,8 @@
 curl
 zsh
+git
+cargo
+ripgrep
 gcc
 dbus-x11
 x11-apps

@@ -52,7 +52,18 @@ bindkey "^N" history-beginning-search-forward-end
 [ -f $HOME/.zsh_aliases ] && source $HOME/.zsh_aliases
 
 # exports
-[ -f $HOME/.zsh_exports ] && source $HOME/.zsh_exports
+[ -f $HOME/.zshenv ] && source $HOME/.zshenv
+
+# package manager
+
+## nvm
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" # This loads nvm
+
+## pyenv
+[[ -d $PYENV_ROOT/bin ]] && export PATH="$PYENV_ROOT/bin:$PATH"
+eval "$(pyenv init - zsh --no-rehash)"
+eval "$(pyenv virtualenv-init -)"
+
 
 # plugins
 # zinit
@@ -72,6 +83,8 @@ source $HOME/.zsh/zsh-autosuggestions/zsh-autosuggestions.zsh
 [ ! -d $HOME/.zsh/zsh-syntax-highlighting ] && git clone https://github.com/zsh-users/zsh-syntax-highlighting $HOME/.zsh/zsh-syntax-highlighting
 source $HOME/.zsh/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 
+
 # To customize prompt, run `p10k configure` or edit $HOME/.p10k.zsh.
 [[ ! -f $HOME/.p10k.zsh ]] || source $HOME/.p10k.zsh
+
 
