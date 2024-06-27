@@ -1,0 +1,29 @@
+# apt
+alias aptl='apt list --installed | awk -F "[/ ]" '\''{print "\033[32m"$1"\033[0m", $3}'\'''
+alias apti='sudo apt -y install'
+alias aptr='sudo apt -y remove'
+alias aptu='sudo apt update'
+
+
+# bash 
+alias flush='. $HOME/.zshrc'
+alias edit-aliases='nvim $HOME/.zsh_aliases'
+alias edit-exports='nvim $HOME/.zsh_exports'
+
+# nvim
+alias v='nvim'
+alias lua='nvim $HOME/.config/nvim/init.lua'
+
+
+# other
+alias os='lsb_release -a'
+
+
+# ls
+alias ls='ls --color=auto -G'
+alias la='ls -lAG'
+alias ll='ls -lG'
+
+# clear 
+alias c='clear'
+alias cc='c &&'
