@@ -51,6 +51,9 @@ bindkey "^N" history-beginning-search-forward-end
 # aliases
 [ -f $HOME/.zsh_aliases ] && source $HOME/.zsh_aliases
 
+# exports
+[ -f $HOME/.zsh_exports ] && source $HOME/.zsh_exports
+
 # plugins
 # zinit
 ZINIT_HOME="${XDG_DATA_HOME:-${HOME}/.local/share}/zinit/zinit.git"

@@ -25,4 +25,5 @@ while IFS= read -r package; do
 done < "$PACKAGE_LIST"
 
 
-sodo chsh -s $(which zsh)
+
+sudo chsh -s $(which zsh)

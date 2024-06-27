@@ -23,6 +23,8 @@ alias os='lsb_release -a'
 alias ls='ls --color=auto -G'
 alias la='ls -lAG'
 alias ll='ls -lG'
+alias lc='colorls -lA --sd'
+
 
 # clear 
 alias c='clear'
