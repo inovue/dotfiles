@@ -49,25 +49,26 @@ bindkey "^P" history-beginning-search-backward-end
 bindkey "^N" history-beginning-search-forward-end
 
 # aliases
-if [ -f $HOME/.zsh_aliases ]; then source $HOME/.zsh_aliases; fi
+[ -f $HOME/.zsh_aliases ] && source $HOME/.zsh_aliases
 
 # plugins
 # zinit
-zinit ice wait'!0'
-zinit ice depth=1; zinit light romkatv/powerlevel10k
-
 ZINIT_HOME="${XDG_DATA_HOME:-${HOME}/.local/share}/zinit/zinit.git"
 [ ! -d $ZINIT_HOME ] && mkdir -p "$(dirname $ZINIT_HOME)"
 [ ! -d $ZINIT_HOME/.git ] && git clone https://github.com/zdharma-continuum/zinit.git "$ZINIT_HOME"
 source "${ZINIT_HOME}/zinit.zsh"
 
+zinit ice wait'!0'
+zinit ice depth=1; zinit light romkatv/powerlevel10k
+
 # zsh-autosuggestions
-if [ ! -d ~/.zsh/zsh-autosuggestions ];then git clone https://github.com/zsh-users/zsh-autosuggestions ~/.zsh/zsh-autosuggestions; else echo "zsh-autosuggestions is already cloned"; fi
-source ~/.zsh/zsh-autosuggestions/zsh-autosuggestions.zsh
+[ ! -d $HOME/.zsh/zsh-autosuggestions ] && git clone https://github.com/zsh-users/zsh-autosuggestions $HOME/.zsh/zsh-autosuggestions
+source $HOME/.zsh/zsh-autosuggestions/zsh-autosuggestions.zsh
 
 # zsh-syntax-highlighting
-if [ ! -d ~/.zsh/zsh-syntax-highlighting ];then git clone https://github.com/zsh-users/zsh-syntax-highlighting ~/.zsh/zsh-syntax-highlighting; else echo "zsh-syntax-highlighting is already cloned"; fi
-source ~/.zsh/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+[ ! -d $HOME/.zsh/zsh-syntax-highlighting ] && git clone https://github.com/zsh-users/zsh-syntax-highlighting $HOME/.zsh/zsh-syntax-highlighting
+source $HOME/.zsh/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 
-# To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
-[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
+# To customize prompt, run `p10k configure` or edit $HOME/.p10k.zsh.
+[[ ! -f $HOME/.p10k.zsh ]] || source $HOME/.p10k.zsh
+
