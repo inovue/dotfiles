@@ -1,0 +1,11 @@
+[tools]
+node = 'lts'
+ruby = '3'
+rust = 'latest'
+python = '3.12'
+bun = 'latest'
+fzf = 'latest'
+ripgrep = 'latest'
+ghq = 'latest'
+lazygit = "latest"
+bottom = "latest"
