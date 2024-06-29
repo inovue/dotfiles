@@ -1,5 +1,6 @@
 #!/bin/bash
 
+sudo apt update && sudo apt upgrade
 
 # apt packages
 sudo apt -y install zsh stow curl
@@ -27,7 +28,7 @@ curl -LO https://github.com/neovim/neovim-releases/releases/download/v0.10.0/nvi
 # mise 
 [ ! -f "~/.local/bin/mise" ] && curl https://mise.run | sh
 mise install -y
-eval "$(~/.local/bin/mise activate bash)"
+
 
 # gh (github cli) 
 (type -p wget >/dev/null || (sudo apt update && sudo apt-get install wget -y)) \
