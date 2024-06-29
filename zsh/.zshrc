@@ -8,7 +8,7 @@ fi
 # Set up the prompt
 
 autoload -Uz promptinit
-
+promptinit
 prompt adam1
 
 setopt histignorealldups sharehistory
@@ -65,8 +65,6 @@ alias c='clear'
 alias cc='c &&'
 alias os='lsb_release -a'
 
-# mise
-[ -f $HOME/.local/bin/mise ] && eval "$($HOME/.local/bin/mise activate zsh)"
 
 # zinit 
 
