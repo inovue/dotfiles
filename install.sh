@@ -1,3 +1,6 @@
+#!/bin/bash
+
+
 # apt packages
 sudo apt -y install zsh stow curl
 
@@ -22,8 +25,9 @@ curl -LO https://github.com/neovim/neovim-releases/releases/download/v0.10.0/nvi
 
 
 # mise 
-curl https://mise.run | sh
+[ ! -f "~/.local/bin/mise" ] && curl https://mise.run | sh
 mise install -y
+eval "$(~/.local/bin/mise activate bash)"
 
 # gh (github cli) 
 (type -p wget >/dev/null || (sudo apt update && sudo apt-get install wget -y)) \
@@ -36,13 +40,7 @@ mise install -y
 
 
 # colorls
-if ! gem list -i colorls > /dev/null 2>&1; then
-  echo "colorls not found. Installing..."
-  sudo gem install colorls
-else
-  echo "colorls is already installed."
-fi
-source $(dirname $(gem which colorls))/tab_complete.sh
+gem install colorls
 
 
 chsh -s $(which zsh)

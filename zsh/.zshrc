@@ -8,7 +8,7 @@ fi
 # Set up the prompt
 
 autoload -Uz promptinit
-promptinit
+
 prompt adam1
 
 setopt histignorealldups sharehistory
@@ -95,3 +95,6 @@ source $HOME/.zsh/zsh-autosuggestions/zsh-autosuggestions.zsh
 # zsh-syntax-highlighting
 [ ! -d $HOME/.zsh/zsh-syntax-highlighting ] && git clone https://github.com/zsh-users/zsh-syntax-highlighting $HOME/.zsh/zsh-syntax-highlighting
 source $HOME/.zsh/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+
+# colorls
+source $(dirname $(gem which colorls))/tab_complete.sh
