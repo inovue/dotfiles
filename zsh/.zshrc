@@ -65,7 +65,10 @@ alias c='clear'
 alias cc='c &&'
 alias os='lsb_release -a'
 
-alias ghc='cd $(ghq root)/$(ghq list | peco)'
+alias ghls='ghq list'
+alias ghcp='ghq get $(gh api user/starred --paginate --jq ".[].html_url" | peco)'
+alias ghrm='ghq rm $(ghq list | peco)'
+alias ghcd='cd $(ghq root)/$(ghq list | peco)'
 
 
 # zinit 
