@@ -1,3 +1,6 @@
+[settings]
+experimental = true
+
 [tools]
 node = 'lts'
 ruby = '3'
@@ -10,3 +13,6 @@ ghq = 'latest'
 lazygit = 'latest'
 bottom = 'latest'
 peco = 'latest'
+"npm:typescript" = "latest"
+"npm:typescript-formatter" = "latest"
+"npm:typescript-language-server" = "latest"
