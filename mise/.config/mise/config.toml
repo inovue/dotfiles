@@ -13,6 +13,7 @@ ghq = 'latest'
 lazygit = 'latest'
 bottom = 'latest'
 peco = 'latest'
+yarn = 'latest'
 "npm:typescript" = "latest"
 "npm:typescript-formatter" = "latest"
 "npm:typescript-language-server" = "latest"
