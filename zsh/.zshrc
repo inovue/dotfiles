@@ -71,6 +71,8 @@ alias ghclone='ghq get $(gh api user/starred --paginate --jq ".[].html_url" | pe
 alias ghrm='ghq rm $(ghq list | peco)'
 alias ghcd='cd $(ghq root)/$(ghq list | peco)'
 
+alias glt='git log --oneline --decorate --graph --all'
+alias glta='git log --graph --pretty='\''%Cred%h%Creset -%C(auto)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset'\'' --all'
 
 # zinit 
 
