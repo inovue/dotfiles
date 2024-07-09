@@ -35,10 +35,18 @@ mise install -y
 	sudo apt update &&
 	sudo apt install gh -y
 
-# libjpeg-turbo
-wget https://github.com/libjpeg-turbo/libjpeg-turbo/releases/download/3.0.3/libjpeg-turbo-official_3.0.3_amd64.deb &&
-	sudo dpkg -i libjpeg-turbo-official_3.0.3_amd64.deb &&
-	rm -f libjpeg-turbo-official_3.0.3_amd64.deb
+# mozjpeg
+wget https://github.com/mozilla/mozjpeg/archive/refs/tags/v4.1.1.tar.gz &&
+	tar xvzf ./v4.1.1.tar.gz &&
+	rm -f v4.1.1.tar.gz &&
+	cd mozjpeg-4.1.1 &&
+	mkdir build && cd build &&
+	sudo cmake -G"Unix Makefiles" -DPNG_SUPPORTED=ON ../ &&
+	sudo make install && sudo make deb &&
+	sudo dpkg -i mozjpeg_4.1.1_amd64.deb &&
+	sudo ln -s /opt/mozjpeg/bin/cjpeg /usr/bin/mozjpeg &&
+	sudo ln -s /opt/mozjpeg/bin/jpegtran /usr/bin/mozjpegtran &&
+	cd ../../ && sudo rm -rf mozjpeg-4.1.1
 
 # colorls
 gem install colorls
