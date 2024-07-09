@@ -7,16 +7,16 @@ sudo apt -y install zsh stow curl xsel
 
 ## python require
 sudo apt -y install build-essential libbz2-dev libdb-dev \
-  libreadline-dev libffi-dev libgdbm-dev liblzma-dev \
-  libncursesw5-dev libsqlite3-dev libssl-dev \
-  zlib1g-dev uuid-dev tk-dev
+	libreadline-dev libffi-dev libgdbm-dev liblzma-dev \
+	libncursesw5-dev libsqlite3-dev libssl-dev \
+	zlib1g-dev uuid-dev tk-dev
 
 ## ruby require
 sudo apt -y install libyaml-dev unzip
 
 # stow
 for dir in */; do
-  stow "${dir%/}"
+	stow "${dir%/}"
 done
 
 # nvim
@@ -28,12 +28,17 @@ mise install -y
 
 # gh (github cli)
 (type -p wget >/dev/null || (sudo apt update && sudo apt-get install wget -y)) &&
-  sudo mkdir -p -m 755 /etc/apt/keyrings &&
-  wget -qO- https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo tee /etc/apt/keyrings/githubcli-archive-keyring.gpg >/dev/null &&
-  sudo chmod go+r /etc/apt/keyrings/githubcli-archive-keyring.gpg &&
-  echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list >/dev/null &&
-  sudo apt update &&
-  sudo apt install gh -y
+	sudo mkdir -p -m 755 /etc/apt/keyrings &&
+	wget -qO- https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo tee /etc/apt/keyrings/githubcli-archive-keyring.gpg >/dev/null &&
+	sudo chmod go+r /etc/apt/keyrings/githubcli-archive-keyring.gpg &&
+	echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list >/dev/null &&
+	sudo apt update &&
+	sudo apt install gh -y
+
+# libjpeg-turbo
+wget https://github.com/libjpeg-turbo/libjpeg-turbo/releases/download/3.0.3/libjpeg-turbo-official_3.0.3_amd64.deb &&
+	sudo dpkg -i libjpeg-turbo-official_3.0.3_amd64.deb &&
+	rm -f libjpeg-turbo-official_3.0.3_amd64.deb
 
 # colorls
 gem install colorls
