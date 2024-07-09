@@ -36,6 +36,7 @@ mise install -y
 	sudo apt install gh -y
 
 # mozjpeg
+sudo apt install cmake autoconf automake libtool nasm make pkg-config
 wget https://github.com/mozilla/mozjpeg/archive/refs/tags/v4.1.1.tar.gz &&
 	tar xvzf ./v4.1.1.tar.gz &&
 	rm -f v4.1.1.tar.gz &&
