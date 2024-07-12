@@ -52,4 +52,7 @@ wget https://github.com/mozilla/mozjpeg/archive/refs/tags/v4.1.1.tar.gz &&
 # colorls
 gem install colorls
 
+# android sdk
+sudo apt install android-sdk
+
 chsh -s $(which zsh)
