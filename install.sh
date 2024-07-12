@@ -52,7 +52,13 @@ wget https://github.com/mozilla/mozjpeg/archive/refs/tags/v4.1.1.tar.gz &&
 # colorls
 gem install colorls
 
-# android sdk
-sudo apt install android-sdk
+# android studio
+## kvm
+sudo apt install cpu-checker && sudo kvm-ok
+sudo apt install qemu-kvm libvirt-daemon-system libvirt-clients bridge-utils
+sudo wget -P /usr/local https://redirector.gvt1.com/edgedl/android/studio/ide-zips/2024.1.1.11/android-studio-2024.1.1.11-linux.tar.gz &&
+	sudo tar -xvf /usr/local/android-studio-2024.1.1.11-linux.tar.gz -C /usr/local
+# sudo apt install android-sdk-platform-tools-common
 
+# change default shell to zsh
 chsh -s $(which zsh)
