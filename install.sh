@@ -60,5 +60,16 @@ sudo wget -P /usr/local https://redirector.gvt1.com/edgedl/android/studio/ide-zi
 	sudo tar -xvf /usr/local/android-studio-2024.1.1.11-linux.tar.gz -C /usr/local
 # sudo apt install android-sdk-platform-tools-common
 
+# pnpm
+curl -fsSL https://get.pnpm.io/install.sh | sh -
+
+# ngrok
+curl -sSL https://ngrok-agent.s3.amazonaws.com/ngrok.asc |
+	sudo tee /etc/apt/trusted.gpg.d/ngrok.asc >/dev/null &&
+	echo "deb https://ngrok-agent.s3.amazonaws.com buster main" |
+	sudo tee /etc/apt/sources.list.d/ngrok.list &&
+	sudo apt update &&
+	sudo apt install ngrok
+
 # change default shell to zsh
 chsh -s $(which zsh)
