@@ -64,12 +64,7 @@ sudo wget -P /usr/local https://redirector.gvt1.com/edgedl/android/studio/ide-zi
 curl -fsSL https://get.pnpm.io/install.sh | sh -
 
 # ngrok
-curl -sSL https://ngrok-agent.s3.amazonaws.com/ngrok.asc |
-	sudo tee /etc/apt/trusted.gpg.d/ngrok.asc >/dev/null &&
-	echo "deb https://ngrok-agent.s3.amazonaws.com buster main" |
-	sudo tee /etc/apt/sources.list.d/ngrok.list &&
-	sudo apt update &&
-	sudo apt install ngrok
+sudo curl https://bin.equinox.io/c/bNyj1mQVY4c/ngrok-v3-stable-linux-amd64.tgz | sudo tar xvz -C /usr/bin
 
 # change default shell to zsh
 chsh -s $(which zsh)
