@@ -78,6 +78,9 @@ alias pnpmx='pnpm -dlx'
 
 alias android='/usr/local/android-studio/bin/studio.sh'
 
+alias aicommit='git add --all && aicommit -m gpt-4o-mini-2024-07-18'
+alias aicommit-key='cat ~/.config/aicommit/openai.key'
+
 # zinit 
 
 if [[ ! -f $HOME/.local/share/zinit/zinit.git/zinit.zsh ]]; then
