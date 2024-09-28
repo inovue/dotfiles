@@ -74,7 +74,7 @@ alias ghcd='cd $(ghq root)/$(ghq list | peco)'
 alias glt='git log --oneline --decorate --graph --all'
 alias glta='git log --graph --pretty='\''%Cred%h%Creset -%C(auto)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset'\'' --all'
 
-alias pnpmx='pnpm -dlx'
+alias pnpx='pnpm -dlx'
 
 alias android='/usr/local/android-studio/bin/studio.sh'
 
