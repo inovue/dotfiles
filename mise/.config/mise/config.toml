@@ -14,7 +14,6 @@ lazygit = 'latest'
 bottom = 'latest'
 peco = 'latest'
 yarn = 'latest'
-"npm:pnpm" = "latest"
 "npm:typescript" = "latest"
 "npm:typescript-formatter" = "latest"
 "npm:typescript-language-server" = "latest"
