@@ -78,7 +78,10 @@ alias pnpx='pnpm -dlx'
 
 alias android='/usr/local/android-studio/bin/studio.sh'
 
-alias aicommit='git add --all && aicommit -m gpt-4o-mini-2024-07-18 && echo "Push? (Y/n)" && read answer && if [[ $answer == "Y" || $answer == "y" || $answer == "" ]]; then git push origin HEAD; else echo "Push canceled"; fi'
+function aicommit-all() {
+  git add --all && aicommit -m gpt-4o-mini-2024-07-18 && echo "Push? (Y/n)" && read answer && if [[ $answer == "Y" || $answer == "y" || $answer == "" ]]; then git push origin HEAD; else echo "Push canceled"; fi
+}
+
 alias aicommit-key='less ~/.config/aicommit/openai.key'
 
 # zinit 
