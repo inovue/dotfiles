@@ -61,6 +61,7 @@ sudo wget -P /usr/local https://redirector.gvt1.com/edgedl/android/studio/ide-zi
 # sudo apt install android-sdk-platform-tools-common
 
 # pnpm
+npm install -g pnpm
 
 # brew
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
@@ -70,3 +71,6 @@ sudo curl https://bin.equinox.io/c/bNyj1mQVY4c/ngrok-v3-stable-linux-amd64.tgz |
 
 # change default shell to zsh
 chsh -s $(which zsh)
+
+# dockly
+npm install -g dockly
