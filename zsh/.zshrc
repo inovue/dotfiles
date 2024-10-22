@@ -84,6 +84,10 @@ function aicommit-all() {
 
 alias aicommit-key='less ~/.config/aicommit/openai.key'
 
+kill-port() {
+  sudo kill -9 $(sudo lsof -t -i:$1)
+}
+
 # zinit 
 
 if [[ ! -f $HOME/.local/share/zinit/zinit.git/zinit.zsh ]]; then
