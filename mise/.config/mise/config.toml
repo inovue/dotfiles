@@ -1,8 +1,9 @@
 [settings]
 experimental = true
+pipx_uvx = true
 
 [tools]
-node = 'lts'
+node = "22"
 ruby = '3'
 rust = 'latest'
 python = '3.12'
@@ -17,5 +18,5 @@ yarn = 'latest'
 "npm:typescript" = "latest"
 "npm:typescript-formatter" = "latest"
 "npm:typescript-language-server" = "latest"
-"npm:pnpm" = "9.5.0"
+"npm:pnpm" = "latest"
 uv = "latest"
