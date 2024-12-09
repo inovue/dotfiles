@@ -18,3 +18,4 @@ yarn = 'latest'
 "npm:typescript-formatter" = "latest"
 "npm:typescript-language-server" = "latest"
 "npm:pnpm" = "9.5.0"
+uv = "latest"
