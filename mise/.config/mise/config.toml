@@ -20,3 +20,4 @@ yarn = 'latest'
 "npm:typescript-language-server" = "latest"
 "npm:pnpm" = "latest"
 uv = "latest"
+act = "latest"

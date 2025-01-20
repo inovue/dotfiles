@@ -86,6 +86,11 @@ function aicommit-all() {
   git add --all && aicommit -m gpt-4o-mini-2024-07-18 && echo "Push? (Y/n)" && read answer && if [[ $answer == "Y" || $answer == "y" || $answer == "" ]]; then git push origin HEAD; else echo "Push canceled"; fi
 }
 
+function mise-select() {
+  [[ -z "$1" ]] && return 1 || mise use "$1@$(mise ls-remote "$1" | sort -rV | fzf)"
+}
+
+
 alias aicommit-key='less ~/.config/aicommit/openai.key'
 
 kill-port() {
