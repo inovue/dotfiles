@@ -1,0 +1,8 @@
+---
+- name: Install modern tools
+  apt:
+    name:
+      - unar
+      - htop
+    state: present
+    update_cache: yes
