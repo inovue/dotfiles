@@ -1,6 +1,12 @@
 #!/bin/bash
 
-sudo apt update && sudo apt upgrade
+CURRENT_DIR=$(cd "$(dirname "$0")" && pwd)
+
+sudo apt update
+sudo apt -y install ansible
+
+ansible-playbook $CURRENT_DIR/ansible/playbook.yml
+
 
 # apt packages
 sudo apt -y install zsh stow curl xsel
