@@ -1,7 +1,7 @@
 ---
 - name: Install Homebrew
   hosts: localhost
-  become: yes
+  become: no
   tasks:
     - name: Install Homebrew using curl and bash
       shell: |

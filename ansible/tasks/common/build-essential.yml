@@ -1,0 +1,12 @@
+---
+- name: Install build-essential
+  hosts: localhost
+  become: yes
+  tasks:
+    - name: Install build-essential (if not already installed)
+      apt:
+        name: build-essential
+        state: present
+      when: >
+        not ansible_facts.packages['build-essential'] is defined
+
