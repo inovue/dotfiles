@@ -1,11 +1,20 @@
 ---
-- name: Install common tools on Ubuntu
-  hosts: all
+- name: Setup development environment on Ubuntu
+  hosts: localhost
   become: yes
+
   tasks:
+    - name: Update apt cache
+      apt:
+        update_cache: yes
+        
     - name: Include common tools installation tasks
-      import_tasks: tasks/common_tools.yml
-    - name: Include modern tools installation tasks
-      import_tasks: tasks/modern_tools.yml
-    - name: Include editor tools installation tasks
-      import_tasks: tasks/editor_tools.yml
+      import_tasks: tasks/common_tools/index.yml
+
+    #- name: Include modern tools installation tasks
+    #  import_tasks: tasks/modern_tools/index.yml
+    #  when: "'2' in selected_tasks"
+
+    #- name: Include editor tools installation tasks
+    #  import_tasks: tasks/editor_tools/index.yml
+    #  when: "'3' in selected_tasks"

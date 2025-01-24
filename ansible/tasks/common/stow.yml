@@ -1,0 +1,7 @@
+---
+- name: Install stow (if not already installed)
+  apt:
+    name: stow
+    state: present
+  when: >
+    not ansible_facts.packages['stow'] is defined

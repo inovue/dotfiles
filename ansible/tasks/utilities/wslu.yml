@@ -1,0 +1,43 @@
+---
+- name: Check if wslu is already installed
+  ansible.builtin.command:
+    cmd: wslview --version
+  register: wslu_installed
+  ignore_errors: yes
+  changed_when: false
+
+- name: Install wslu (if not installed)
+  block:
+    - name: Install required packages (gnupg2 and apt-transport-https)
+      apt:
+        name:
+          - gnupg2
+          - apt-transport-https
+        state: present
+        update_cache: yes
+
+    - name: Download and add the wslu repository key
+      shell: |
+        wget -O - https://pkg.wslutiliti.es/public.key | gpg -o /usr/share/keyrings/wslu-archive-keyring.pgp --dearmor
+      args:
+        creates: /usr/share/keyrings/wslu-archive-keyring.pgp  # 既にファイルがある場合はスキップ
+
+    - name: Add wslu repository to sources.list.d
+      copy:
+        dest: /etc/apt/sources.list.d/wslu.list
+        content: |
+          deb [signed-by=/usr/share/keyrings/wslu-archive-keyring.pgp] https://pkg.wslutiliti.es/debian {{ ansible_distribution_release }} main
+        owner: root
+        group: root
+        mode: '0644'
+
+    - name: Update apt cache
+      apt:
+        update_cache: yes
+
+    - name: Install wslu
+      apt:
+        name: wslu
+        state: present
+
+  when: wslu_installed is failed

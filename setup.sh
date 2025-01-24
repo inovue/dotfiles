@@ -4,8 +4,9 @@ CURRENT_DIR=$(cd "$(dirname "$0")" && pwd)
 
 sudo apt update
 sudo apt -y install ansible
+ansible-playbook $CURRENT_DIR/ansible/playbook.yml --ask-become-pass
 
-ansible-playbook $CURRENT_DIR/ansible/playbook.yml
+stow stow
 
 
 # apt packages
