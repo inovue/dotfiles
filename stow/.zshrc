@@ -2,9 +2,6 @@
 # zinit
 zinit load ~/.zsh/zinit.zsh
 
-# starship
-zinit load ~/.zsh/starship.zsh
-
 # plugins
 zinit load ~/.zsh/plugins.zsh
 
