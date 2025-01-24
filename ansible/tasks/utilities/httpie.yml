@@ -1,0 +1,9 @@
+---
+- name: Install httpie
+  hosts: localhost
+  become: no
+  tasks:
+    - name: Install httpie using Homebrew
+      homebrew:
+        name: httpie
+        state: present

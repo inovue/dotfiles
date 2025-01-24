@@ -1,9 +1,0 @@
----
-- name: Install editor tools
-  become: true
-  apt:
-    name:
-      - vim
-      - neovim
-      - tmux
-    state: present 

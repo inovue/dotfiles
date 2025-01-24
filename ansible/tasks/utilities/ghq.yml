@@ -1,9 +1,9 @@
 ---
-- name: Install mise
+- name: Install ghq
   hosts: localhost
   become: no
   tasks:
-    - name: Install mise using Homebrew
+    - name: Install ghq using Homebrew
       homebrew:
-        name: mise
+        name: ghq
         state: present

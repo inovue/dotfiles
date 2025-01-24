@@ -1,12 +1,18 @@
 
 # zinit
-zinit load ~/.zsh/zinit.zsh
+source "$HOME/.zsh/zinit.zsh"
 
 # plugins
-zinit load ~/.zsh/plugins.zsh
+source "$HOME/.zsh/plugins.zsh"
 
 # aliases
-zinit load ~/.zsh/aliases.zsh
+source "$HOME/.zsh/aliases.zsh"
 
 # exports
-zinit load ~/.zsh/exports.zsh
+source "$HOME/.zsh/exports.zsh"
+
+# mise
+eval "$(mise activate zsh)"
+
+# zoxide
+eval "$(zoxide init zsh)"

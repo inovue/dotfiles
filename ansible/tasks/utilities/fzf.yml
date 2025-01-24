@@ -1,9 +1,9 @@
 ---
-- name: Install mise
+- name: Install fzf
   hosts: localhost
   become: no
   tasks:
-    - name: Install mise using Homebrew
+    - name: Install fzf using Homebrew
       homebrew:
-        name: mise
+        name: fzf
         state: present

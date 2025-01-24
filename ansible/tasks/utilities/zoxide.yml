@@ -1,9 +1,9 @@
 ---
-- name: Install mise
+- name: Install zoxide
   hosts: localhost
   become: no
   tasks:
-    - name: Install mise using Homebrew
+    - name: Install zoxide
       homebrew:
-        name: mise
+        name: zoxide
         state: present

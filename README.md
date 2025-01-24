@@ -1,21 +1,20 @@
 ## System
 
-- [ ] [ansible](https://docs.ansible.com/ansible/latest/installation_guide/intro_installation.html)
-- [ ] [stow](https://www.gnu.org/software/stow/manual/stow.html)
-- [ ] [wslu](https://github.com/wslutilities/wslu) - WSL Utilities
-- [ ] [httpie](https://httpie.io/docs/cli/linux) - HTTPie
+- [x] [ansible](https://docs.ansible.com/ansible/latest/installation_guide/intro_installation.html)
+- [x] [stow](https://www.gnu.org/software/stow/manual/stow.html)
+- [x] [wslu](https://github.com/wslutilities/wslu) - WSL Utilities
 
 ## Package Manager
 
 - [x] [apt](https://ubuntu.com/server/docs/package-management)
-- [ ] [mise](https://mise.jdx.dev/dev-tools/)
-- [ ] [brew](https://brew.sh/)
+- [x] [mise](https://mise.jdx.dev/dev-tools/)
+- [x] [brew](https://brew.sh/)
 
 ## Shell
 
 - [ ] [zsh](https://zsh.sourceforge.io/Guide/zshguide01.html)
-- [ ] [zinit](https://github.com/zdharma-continuum/zinit)
-- [ ] [starship](https://starship.rs/guide/#%F0%9F%9A%80-installation)
+- [x] [zinit](https://github.com/zdharma-continuum/zinit)
+- [x] [starship](https://starship.rs/guide/#%F0%9F%9A%80-installation)
 
 ### Editor
 
@@ -26,10 +25,10 @@
 
 ### Git
 
-- [ ] [git](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git) - Git
+- [x] [git](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git) - Git
 - [ ] [git-lfs](https://github.com/git-lfs/git-lfs/wiki/Installation) - Git Large File Storage
 - [ ] [gh](https://github.com/cli/cli) - GitHub CLI
-- [ ] [ghq](https://github.com/x-motemen/ghq) - GitHub Repository Manager
+- [x] [ghq](https://github.com/x-motemen/ghq) - GitHub Repository Manager
 - [ ] [LazyGit](https://github.com/jesseduffield/lazygit) - Git UI
 - [ ] [act](https://github.com/nektos/act) - GitHub Actions runner
 
@@ -41,7 +40,7 @@
 
 ### Other
 
-- [ ] [fzf](https://github.com/junegunn/fzf) - Fuzzy Finder
+- [x] [fzf](https://github.com/junegunn/fzf) - Fuzzy Finder
 - [ ] [unar](https://github.com/ashang/unar/blob/master/README.md)
 - [x] [curl](https://curl.se/docs/install.html)
 - [x] [wget](https://www.gnu.org/software/wget/manual/wget.html)
@@ -55,8 +54,7 @@
 - [ ] [bottom](https://github.com/ClementTsang/bottom) - top replacement
 - [ ] [dog](https://github.com/ogham/dog) - dig replacement
 - [ ] [gping](https://github.com/orf/gping) - ping replacement
-- [ ] [httpie](https://httpie.io/docs/cli/linux) - curl replacement
-- [ ] [zoxide](https://github.com/ajeetdsouza/zoxide) - cd replacement
-- [ ] [htop](https://htop.dev/) - top replacement
+- [x] [httpie](https://httpie.io/docs/cli/linux) - HTTPie
+- [x] [zoxide](https://github.com/ajeetdsouza/zoxide) - cd replacement
 - [ ] [mcfly](https://github.com/cantino/mcfly) - history replacement
 - [ ] [zellij](https://zellij.dev/documentation/installation) - tmux replacement
