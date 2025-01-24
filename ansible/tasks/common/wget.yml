@@ -1,8 +1,0 @@
----
-- name: Install wget (if not already installed)
-  apt:
-    name: wget
-    state: present
-  when: >
-    not ansible_facts.packages['wget'] is defined
-    

@@ -1,20 +1,60 @@
 ---
-- name: Setup development environment on Ubuntu
+- name: Install utilities
   hosts: localhost
-  become: yes
-
   tasks:
+    - name: Add PPA for wslu
+      apt_repository:
+        repo: "ppa:wslutilities/wslu"
+        state: present
+        update_cache: no  # ここでは手動でapt updateを行うため、noに設定
+
     - name: Update apt cache
       apt:
         update_cache: yes
-        
-    - name: Include common tools installation tasks
-      import_tasks: tasks/common_tools/index.yml
 
-    #- name: Include modern tools installation tasks
-    #  import_tasks: tasks/modern_tools/index.yml
-    #  when: "'2' in selected_tasks"
+    - name: Install utilities using apt
+      become: yes
+      apt:
+        name: "{{ item }}"
+        state: present
+        update_cache: no
+      loop:
+        - build-essential
+        - curl
+        - stow
+        - wget
+        - wslu
+        - zsh
 
-    #- name: Include editor tools installation tasks
-    #  import_tasks: tasks/editor_tools/index.yml
-    #  when: "'3' in selected_tasks"
+    - name: Install linuxbrew
+      shell: |
+        /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+      args:
+        creates: /home/linuxbrew/.linuxbrew/bin/brew  # 既に Homebrew がインストールされている場合はスキップ
+      environment:
+        NONINTERACTIVE: 1  # 非対話モードで実行
+
+    - name: Install utilities using Homebrew
+      homebrew:
+        name: "{{ item }}"
+        state: present
+      loop:
+        - act
+        - bat
+        - bottom
+        - fzf
+        - httpie
+        - gh
+        - ghq
+        - git-lfs
+        - gping
+        - lazygit
+        - lsd
+        - mcfly
+        - mise
+        - procs
+        - ripgrep
+        - unar
+        - vips
+        - zellij
+        - zoxide

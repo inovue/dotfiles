@@ -1,9 +1,0 @@
----
-- name: Install mise
-  hosts: localhost
-  become: no
-  tasks:
-    - name: Install mise using Homebrew
-      homebrew:
-        name: mise
-        state: present

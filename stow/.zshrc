@@ -11,8 +11,10 @@ source "$HOME/.zsh/aliases.zsh"
 # exports
 source "$HOME/.zsh/exports.zsh"
 
+
+# mcfly
+eval "$(mcfly init zsh)"
 # mise
 eval "$(mise activate zsh)"
-
 # zoxide
 eval "$(zoxide init zsh)"

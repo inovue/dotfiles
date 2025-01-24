@@ -1,9 +1,0 @@
----
-- name: Install fzf
-  hosts: localhost
-  become: no
-  tasks:
-    - name: Install fzf using Homebrew
-      homebrew:
-        name: fzf
-        state: present

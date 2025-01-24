@@ -1,7 +1,0 @@
----
-- name: Install curl (if not already installed)
-  apt:
-    name: curl
-    state: present
-  when: >
-    not ansible_facts.packages['curl'] is defined

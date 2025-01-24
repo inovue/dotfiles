@@ -1,9 +1,0 @@
----
-- name: Install zoxide
-  hosts: localhost
-  become: no
-  tasks:
-    - name: Install zoxide
-      homebrew:
-        name: zoxide
-        state: present

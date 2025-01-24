@@ -1,9 +1,0 @@
----
-- name: Install ghq
-  hosts: localhost
-  become: no
-  tasks:
-    - name: Install ghq using Homebrew
-      homebrew:
-        name: ghq
-        state: present

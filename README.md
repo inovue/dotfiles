@@ -26,11 +26,11 @@
 ### Git
 
 - [x] [git](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git) - Git
-- [ ] [git-lfs](https://github.com/git-lfs/git-lfs/wiki/Installation) - Git Large File Storage
-- [ ] [gh](https://github.com/cli/cli) - GitHub CLI
+- [x] [gh](https://github.com/cli/cli#installation) - GitHub CLI
+- [x] [git-lfs](https://github.com/git-lfs/git-lfs/wiki/Installation) - Git Large File Storage
 - [x] [ghq](https://github.com/x-motemen/ghq) - GitHub Repository Manager
-- [ ] [LazyGit](https://github.com/jesseduffield/lazygit) - Git UI
-- [ ] [act](https://github.com/nektos/act) - GitHub Actions runner
+- [x] [LazyGit](https://github.com/jesseduffield/lazygit?tab=readme-ov-file#installation) - Git UI
+- [x] [act](https://github.com/nektos/act) - GitHub Actions runner
 
 ### Docker
 
@@ -40,21 +40,22 @@
 
 ### Other
 
+- [x] [bat](https://github.com/sharkdp/bat) - cat replacement
 - [x] [fzf](https://github.com/junegunn/fzf) - Fuzzy Finder
-- [ ] [unar](https://github.com/ashang/unar/blob/master/README.md)
+- [x] [unar](https://github.com/ashang/unar/blob/master/README.md)
 - [x] [curl](https://curl.se/docs/install.html)
 - [x] [wget](https://www.gnu.org/software/wget/manual/wget.html)
-- [ ] [libvips](https://github.com/libvips/libvips/wiki/Build-for-Ubuntu) - Image processing
+- [x] [vips](https://www.libvips.org/install.html) - Image processing
 
 ### Modern Commands
 
-- [ ] [lsd](https://github.com/Peltoche/lsd) - ls replacement
-- [ ] [ripgrep](https://github.com/BurntSushi/ripgrep) - grep replacement
-- [ ] [procs](https://github.com/dalance/procs) - ps replacement
-- [ ] [bottom](https://github.com/ClementTsang/bottom) - top replacement
+- [x] [bottom](https://github.com/ClementTsang/bottom) - top replacement
 - [ ] [dog](https://github.com/ogham/dog) - dig replacement
-- [ ] [gping](https://github.com/orf/gping) - ping replacement
+- [x] [gping](https://github.com/orf/gping) - ping replacement
 - [x] [httpie](https://httpie.io/docs/cli/linux) - HTTPie
+- [x] [lsd](https://github.com/Peltoche/lsd) - ls replacement
+- [x] [mcfly](https://github.com/cantino/mcfly) - history replacement
+- [x] [procs](https://github.com/dalance/procs) - ps replacement
+- [x] [ripgrep](https://github.com/BurntSushi/ripgrep) - grep replacement
+- [x] [zellij](https://zellij.dev/documentation/installation) - tmux replacement
 - [x] [zoxide](https://github.com/ajeetdsouza/zoxide) - cd replacement
-- [ ] [mcfly](https://github.com/cantino/mcfly) - history replacement
-- [ ] [zellij](https://zellij.dev/documentation/installation) - tmux replacement
