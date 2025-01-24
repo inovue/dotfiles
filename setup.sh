@@ -7,3 +7,5 @@ sudo apt -y install ansible
 ansible-playbook $CURRENT_DIR/ansible/playbook.yml --ask-become-pass
 
 stow stow
+
+chsh -s $(which zsh)

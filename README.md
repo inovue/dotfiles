@@ -1,4 +1,7 @@
-## System
+## Font 
+- [ ] [FiraCode Nerd Fonts](https://www.nerdfonts.com/font-downloads)
+
+## Utilities
 
 - [x] [ansible](https://docs.ansible.com/ansible/latest/installation_guide/intro_installation.html)
 - [x] [stow](https://www.gnu.org/software/stow/manual/stow.html)
@@ -12,7 +15,7 @@
 
 ## Shell
 
-- [ ] [zsh](https://zsh.sourceforge.io/Guide/zshguide01.html)
+- [x] [zsh](https://zsh.sourceforge.io/Guide/zshguide01.html)
 - [x] [zinit](https://github.com/zdharma-continuum/zinit)
 - [x] [starship](https://starship.rs/guide/#%F0%9F%9A%80-installation)
 
@@ -35,8 +38,8 @@
 ### Docker
 
 - [ ] [Docker](https://docs.docker.com/engine/install/ubuntu/)
-- [ ] [LazyDocker](https://github.com/jesseduffield/lazydocker)
-- [ ] [Dive](https://github.com/wagoodman/dive)
+- [x] [LazyDocker](https://github.com/jesseduffield/lazydocker)
+- [x] [Dive](https://github.com/wagoodman/dive)
 
 ### Other
 

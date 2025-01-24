@@ -3,12 +3,14 @@
   hosts: localhost
   tasks:
     - name: Add PPA for wslu
+      become: yes
       apt_repository:
         repo: "ppa:wslutilities/wslu"
         state: present
         update_cache: no  # ここでは手動でapt updateを行うため、noに設定
 
     - name: Update apt cache
+      become: yes
       apt:
         update_cache: yes
 
@@ -42,12 +44,14 @@
         - act
         - bat
         - bottom
+        - dive
         - fzf
         - httpie
         - gh
         - ghq
         - git-lfs
         - gping
+        - lazydocker
         - lazygit
         - lsd
         - mcfly
