@@ -1,2 +1,5 @@
-!/stow/.config/starship.toml
 /stow/.config/*
+!/stow/.config/starship.toml
+!/stow/.config/mise/
+/stow/.config/mise/*
+!/stow/.config/mise/config.toml
