@@ -7,3 +7,4 @@ python = "latest"
 bun = 'latest'
 uv = "latest"
 ruff = "latest"
+poetry = "latest"
