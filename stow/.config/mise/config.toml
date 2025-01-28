@@ -1,0 +1,9 @@
+[settings]
+experimental = true
+
+[tools]
+node = "latest"
+python = "latest"
+bun = 'latest'
+uv = "latest"
+ruff = "latest"

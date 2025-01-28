@@ -1,0 +1,64 @@
+---
+- name: Install utilities
+  hosts: localhost
+  tasks:
+    - name: Add PPA for wslu
+      become: yes
+      apt_repository:
+        repo: "ppa:wslutilities/wslu"
+        state: present
+        update_cache: no  # ここでは手動でapt updateを行うため、noに設定
+
+    - name: Update apt cache
+      become: yes
+      apt:
+        update_cache: yes
+
+    - name: Install utilities using apt
+      become: yes
+      apt:
+        name: "{{ item }}"
+        state: present
+        update_cache: no
+      loop:
+        - build-essential
+        - curl
+        - stow
+        - wget
+        - wslu
+        - zsh
+
+    - name: Install linuxbrew
+      shell: |
+        /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+      args:
+        creates: /home/linuxbrew/.linuxbrew/bin/brew  # 既に Homebrew がインストールされている場合はスキップ
+      environment:
+        NONINTERACTIVE: 1  # 非対話モードで実行
+
+    - name: Install utilities using Homebrew
+      homebrew:
+        name: "{{ item }}"
+        state: present
+      loop:
+        - act
+        - bat
+        - bottom
+        - dive
+        - fzf
+        - httpie
+        - gh
+        - ghq
+        - git-lfs
+        - gping
+        - lazydocker
+        - lazygit
+        - lsd
+        - mcfly
+        - mise
+        - procs
+        - ripgrep
+        - unar
+        - vips
+        - zellij
+        - zoxide
