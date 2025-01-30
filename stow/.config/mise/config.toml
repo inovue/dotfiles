@@ -3,7 +3,7 @@ experimental = true
 
 [tools]
 node = "latest"
-python = "latest"
+python = "3.12"
 bun = 'latest'
 uv = "latest"
 ruff = "latest"

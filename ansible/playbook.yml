@@ -57,6 +57,7 @@
         - mcfly
         - mise
         - procs
+        - pre-commit
         - ripgrep
         - unar
         - vips
