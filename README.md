@@ -37,7 +37,7 @@
 
 ### Docker
 
-- [ ] [Docker](https://docs.docker.com/engine/install/ubuntu/)
+- [x] [Docker](https://docs.docker.com/engine/install/ubuntu/)
 - [x] [LazyDocker](https://github.com/jesseduffield/lazydocker)
 - [x] [Dive](https://github.com/wagoodman/dive)
 

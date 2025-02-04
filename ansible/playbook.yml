@@ -1,6 +1,9 @@
 ---
 - name: Install utilities
   hosts: localhost
+  connection: local
+  vars:
+    ansible_user: "{{ lookup('env', 'USER') }}"
   tasks:
     - name: Add PPA for wslu
       become: yes
@@ -27,6 +30,9 @@
         - wget
         - wslu
         - zsh
+    
+    - name: Install Docker
+      import_tasks: tasks/docker.yml
 
     - name: Install linuxbrew
       shell: |
