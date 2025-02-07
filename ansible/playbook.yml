@@ -51,6 +51,7 @@
         - bat
         - bottom
         - dive
+        - dust
         - fzf
         - httpie
         - gh

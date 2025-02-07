@@ -54,6 +54,7 @@
 
 - [x] [bottom](https://github.com/ClementTsang/bottom) - top replacement
 - [ ] [dog](https://github.com/ogham/dog) - dig replacement
+- [x] [dust](https://github.com/bootandy/dust) - du replacement
 - [x] [gping](https://github.com/orf/gping) - ping replacement
 - [x] [httpie](https://httpie.io/docs/cli/linux) - HTTPie
 - [x] [lsd](https://github.com/Peltoche/lsd) - ls replacement
