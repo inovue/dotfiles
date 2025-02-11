@@ -4,3 +4,6 @@
 /stow/.config/lazygit
 /stow/.config/wslu
 /stow/.config/zellij
+
+/stow/comfyui/storage/*
+!/stow/comfyui/storage/.gitkeep
