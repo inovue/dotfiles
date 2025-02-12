@@ -9,7 +9,7 @@
   become: yes
   shell: sh /tmp/get-docker.sh
   args:
-    creates: /usr/bin/docker  # Dockerが既にインストールされている場合はスキップ
+    creates: /usr/bin/docker
 
 - name: Add user to docker group
   become: yes

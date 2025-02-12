@@ -30,9 +30,14 @@
         - wget
         - wslu
         - zsh
-    
+
     - name: Install Docker
+      become: yes
       import_tasks: tasks/docker.yml
+
+    - name: Install NVIDIA Container Toolkit
+      become: yes
+      import_tasks: tasks/nvidia-container-toolkit.yml
 
     - name: Install linuxbrew
       shell: |
