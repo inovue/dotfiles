@@ -20,3 +20,9 @@ eval "$(mcfly init zsh)"
 eval "$(mise activate zsh)"
 # zoxide
 eval "$(zoxide init zsh)"
+# BEGIN ANSIBLE MANAGED BLOCK - CURSOR AI IDE
+# Cursor alias
+function cursor1() {
+  /opt/cursor.appimage --no-sandbox "${@}" > /dev/null 2>&1 & disown
+}
+# END ANSIBLE MANAGED BLOCK - CURSOR AI IDE

@@ -79,3 +79,13 @@
         - vips
         - zellij
         - zoxide
+
+    - name: Install Cursor AI IDE
+      become: yes
+      import_tasks: tasks/cursor.yml
+      vars:
+        cursor_appimage_url: "https://downloader.cursor.sh/linux/appImage/x64"
+        cursor_icon_url: "https://raw.githubusercontent.com/rahuljangirwork/copmany-logos/refs/heads/main/cursor.png"
+        appimage_path: "/opt/cursor.appimage"
+        icon_path: "/opt/cursor.png"
+        desktop_entry_path: "/usr/share/applications/cursor.desktop"

@@ -1,0 +1,47 @@
+---
+- name: Check if Cursor is already installed
+  stat:
+    path: "{{ appimage_path }}"
+  register: cursor_installed
+
+- name: Install curl if not present
+  package:
+    name: curl
+    state: present
+  when: not cursor_installed.stat.exists
+
+- name: Download Cursor AppImage
+  get_url:
+    url: "{{ cursor_appimage_url }}"
+    dest: "{{ appimage_path }}"
+    mode: '0755'
+  when: not cursor_installed.stat.exists
+
+- name: Download Cursor icon
+  get_url:
+    url: "{{ cursor_icon_url }}"
+    dest: "{{ icon_path }}"
+  when: not cursor_installed.stat.exists
+
+- name: Create desktop entry for Cursor
+  copy:
+    dest: "{{ desktop_entry_path }}"
+    content: |
+      [Desktop Entry]
+      Name=Cursor AI IDE
+      Exec={{ appimage_path }} --no-sandbox
+      Icon={{ icon_path }}
+      Type=Application
+      Categories=Development;
+  when: not cursor_installed.stat.exists
+
+- name: Add cursor alias to .zshrc
+  blockinfile:
+    path: "{{ ansible_env.HOME }}/.zshrc"
+    marker: "# {mark} ANSIBLE MANAGED BLOCK - CURSOR AI IDE"
+    block: |
+      # Cursor alias
+      function cursor() {
+        /opt/cursor.appimage --no-sandbox "${@}" > /dev/null 2>&1 & disown
+      }
+  when: not cursor_installed.stat.exists
