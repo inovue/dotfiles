@@ -43,6 +43,10 @@
       become: yes
       import_tasks: tasks/cloudflared.yml
 
+    - name: Install dockge
+      become: yes
+      import_tasks: tasks/dockge.yml
+
     - name: Install linuxbrew
       shell: |
         /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"

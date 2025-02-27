@@ -1,0 +1,22 @@
+---
+- name: Create directories for stacks and Dockge
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    mode: '0755'
+  loop:
+    - /opt/stacks
+    - /opt/dockge
+
+- name: Download Dockge compose.yaml
+  ansible.builtin.get_url:
+    url: https://raw.githubusercontent.com/louislam/dockge/master/compose.yaml
+    dest: /opt/dockge/compose.yaml
+    mode: '0644'
+
+- name: Start Dockge server with docker compose
+  ansible.builtin.command:
+    cmd: docker compose up -d
+    chdir: /opt/dockge
+  register: dockge_result
+  changed_when: dockge_result.stdout is search('Starting') or dockge_result.stdout is search('Creating')
