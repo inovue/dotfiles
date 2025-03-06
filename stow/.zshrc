@@ -20,3 +20,6 @@ eval "$(mcfly init zsh)"
 eval "$(mise activate zsh)"
 # zoxide
 eval "$(zoxide init zsh)"
+
+# miniforge
+source "$HOME/.zsh/miniforge.zsh"
