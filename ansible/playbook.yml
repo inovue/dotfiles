@@ -56,10 +56,6 @@
       become: yes
       import_tasks: tasks/dockge.yml
 
-    - name: Install Miniforge
-      become: yes
-      import_tasks: tasks/miniforge.yml
-
     - name: Install linuxbrew
       shell: |
         /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
