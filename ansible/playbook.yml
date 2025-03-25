@@ -30,6 +30,15 @@
         - wget
         - wslu
         - zsh
+    
+    - name: Install dev tools using apt
+      become: yes
+      apt:
+        name: "{{ item }}"
+        state: present
+        update_cache: no
+      loop:
+        - devscripts
 
     - name: Install Docker
       become: yes

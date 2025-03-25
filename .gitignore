@@ -5,6 +5,7 @@
 /stow/.config/wslu
 /stow/.config/zellij
 /stow/.config/.wrangler
+/stow/.config/astro
 
 /stow/comfyui/storage/*
 !/stow/comfyui/storage/.gitkeep
