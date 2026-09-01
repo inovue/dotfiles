@@ -1,0 +1,473 @@
+---
+- name: ターミナル環境構築 (WSL Ubuntu 2026 Ultra Modern CLI + HyperFrames Ready)
+  hosts: localhost
+  become: yes
+  vars:
+    real_user: "{{ lookup('env', 'SUDO_USER') | default(ansible_env.USER | default(ansible_user_id), true) }}"
+    home: "{{ '/root' if real_user == 'root' else '/home/' + real_user }}"
+    # Git グローバル設定（上書き例: -e git_user_name="Your Name" -e git_user_email="you@example.com"）
+    git_user_name: "{{ real_user }}"
+    git_user_email: "{{ real_user }}@users.noreply.github.com"
+
+  environment:
+    DEBIAN_FRONTEND: noninteractive
+
+  tasks:
+    # ========================================
+    # 1. APT キャッシュ更新 & 基本依存関係のインストール
+    # ========================================
+    - name: Update apt cache
+      apt:
+        update_cache: yes
+        cache_valid_time: 3600
+      register: apt_update_result
+      until: apt_update_result is succeeded
+      retries: 3
+      delay: 5
+
+    - name: Install base, media, Chromium headless deps, Japanese fonts & modern packages
+      apt:
+        name:
+          - zsh
+          - git
+          - curl
+          - wget
+          - tar
+          - gzip
+          - unzip
+          - gpg
+          - jq
+          - ffmpeg
+          - libvips
+          - libvips-tools
+          - libvips-dev
+          - bat
+          - ripgrep
+          - fd-find
+          - fzf
+          - btop
+          - git-delta
+          # --- フォント（文字化け防止 / HyperFrames レンダリング用） ---
+          - fonts-liberation
+          - fonts-noto-cjk
+          - fonts-noto-color-emoji
+          # --- Headless Chromium / HyperFrames 用システムライブラリ (Ubuntu 24.04 t64) ---
+          - xdg-utils
+          - libasound2t64
+          - libatk-bridge2.0-0t64
+          - libatk1.0-0t64
+          - libatspi2.0-0t64
+          - libcairo2
+          - libcups2t64
+          - libdbus-1-3
+          - libdrm2
+          - libfontconfig1
+          - libgbm1
+          - libgdk-pixbuf-2.0-0
+          - libglib2.0-0t64
+          - libgtk-3-0t64
+          - libnspr4
+          - libnss3
+          - libpango-1.0-0
+          - libpangocairo-1.0-0
+          - libvulkan1
+          - libx11-xcb1
+          - libxcb1
+          - libxcomposite1
+          - libxdamage1
+          - libxext6
+          - libxfixes3
+          - libxkbcommon0
+          - libxrandr2
+          - libxrender1
+          - libxshmfence1
+          - libxss1
+          - libxtst6
+        state: present
+        dpkg_options: 'force-confdef,force-confold'
+      register: apt_install_result
+      until: apt_install_result is succeeded
+      retries: 3
+      delay: 10
+
+    # ========================================
+    # 2. zsh をデフォルトシェルに変更
+    # ========================================
+    - name: Change default shell to zsh
+      user:
+        name: "{{ real_user }}"
+        shell: /usr/bin/zsh
+
+    # ========================================
+    # 3. Starship Prompt
+    # ========================================
+    - name: Install Starship
+      shell: curl -sS https://starship.rs/install.sh | sh -s -- -y
+      args:
+        creates: /usr/local/bin/starship
+
+    - name: Create ~/.config directory
+      file:
+        path: "{{ home }}/.config"
+        state: directory
+        owner: "{{ real_user }}"
+        group: "{{ real_user }}"
+        mode: "0755"
+
+    - name: Deploy default starship.toml
+      copy:
+        dest: "{{ home }}/.config/starship.toml"
+        owner: "{{ real_user }}"
+        group: "{{ real_user }}"
+        mode: "0644"
+        content: |
+          # Starship Configuration
+          add_newline = false
+          [line_break]
+          disabled = true
+
+    # ========================================
+    # 4. Sheldon (GitHub API 経由で最新リリースを取得)
+    # ========================================
+    - name: Ensure ~/.local/bin exists
+      file:
+        path: "{{ home }}/.local/bin"
+        state: directory
+        owner: "{{ real_user }}"
+        group: "{{ real_user }}"
+        mode: "0755"
+
+    - name: Get Architecture for Sheldon
+      command: uname -m
+      register: uname_m
+      changed_when: false
+
+    - name: Set Sheldon Arch Fact
+      set_fact:
+        sheldon_arch: "{{ 'x86_64-unknown-linux-musl' if uname_m.stdout == 'x86_64' else 'aarch64-unknown-linux-musl' }}"
+
+    - name: Get latest Sheldon release tag
+      uri:
+        url: https://api.github.com/repos/rossmacarthur/sheldon/releases/latest
+        return_content: yes
+      register: sheldon_latest_release
+
+    - name: Set Sheldon Version Fact
+      set_fact:
+        sheldon_version: "{{ sheldon_latest_release.json.tag_name | regex_replace('^v', '') }}"
+
+    - name: Download Sheldon release archive
+      get_url:
+        url: "https://github.com/rossmacarthur/sheldon/releases/download/{{ sheldon_version }}/sheldon-{{ sheldon_version }}-{{ sheldon_arch }}.tar.gz"
+        dest: "/tmp/sheldon.tar.gz"
+        mode: "0644"
+
+    - name: Install Sheldon binary
+      unarchive:
+        src: "/tmp/sheldon.tar.gz"
+        dest: "{{ home }}/.local/bin"
+        remote_src: yes
+        creates: "{{ home }}/.local/bin/sheldon"
+        mode: "0755"
+
+    - name: Ensure ~/.config/sheldon directory exists
+      file:
+        path: "{{ home }}/.config/sheldon"
+        state: directory
+        owner: "{{ real_user }}"
+        group: "{{ real_user }}"
+        mode: "0755"
+
+    - name: Deploy Sheldon plugins.toml
+      copy:
+        dest: "{{ home }}/.config/sheldon/plugins.toml"
+        owner: "{{ real_user }}"
+        group: "{{ real_user }}"
+        mode: "0644"
+        content: |
+          shell = "zsh"
+
+          [plugins.zsh-completions]
+          github = "zsh-users/zsh-completions"
+
+          [plugins.zsh-autosuggestions]
+          github = "zsh-users/zsh-autosuggestions"
+
+          [plugins.zsh-syntax-highlighting]
+          github = "zsh-users/zsh-syntax-highlighting"
+
+    # ========================================
+    # 5. eza (ls 代替)
+    # ========================================
+    - name: Create keyrings directory
+      file:
+        path: /etc/apt/keyrings
+        state: directory
+        mode: "0755"
+
+    - name: Add eza GPG key
+      shell: |
+        wget -qO- https://raw.githubusercontent.com/eza-community/eza/main/deb.asc \
+          | gpg --dearmor -o /etc/apt/keyrings/gierens.gpg
+      args:
+        creates: /etc/apt/keyrings/gierens.gpg
+
+    - name: Add eza repository
+      apt_repository:
+        repo: "deb [signed-by=/etc/apt/keyrings/gierens.gpg] http://deb.gierens.de stable main"
+        state: present
+        filename: gierens
+
+    - name: Install eza
+      apt:
+        name: eza
+        state: present
+        update_cache: yes
+        dpkg_options: 'force-confdef,force-confold'
+
+    # ========================================
+    # 6. zoxide (cd 代替)
+    # ========================================
+    - name: Install zoxide
+      become: yes
+      become_user: "{{ real_user }}"
+      shell: curl -sS https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh | bash
+      args:
+        creates: "{{ home }}/.local/bin/zoxide"
+
+    # ========================================
+    # 7. lazygit (GitHub API 経由で最新リリースを取得)
+    # ========================================
+    - name: Set Architecture Fact for lazygit
+      set_fact:
+        lazygit_arch: "{{ 'linux_x86_64' if uname_m.stdout == 'x86_64' else 'linux_arm64' }}"
+
+    - name: Get latest lazygit release tag
+      uri:
+        url: https://api.github.com/repos/jesseduffield/lazygit/releases/latest
+        return_content: yes
+      register: lazygit_latest_release
+
+    - name: Set lazygit Version Fact
+      set_fact:
+        lazygit_version: "{{ lazygit_latest_release.json.tag_name | regex_replace('^v', '') }}"
+
+    - name: Download lazygit archive directly from release
+      get_url:
+        url: "https://github.com/jesseduffield/lazygit/releases/download/v{{ lazygit_version }}/lazygit_{{ lazygit_version }}_{{ lazygit_arch }}.tar.gz"
+        dest: "/tmp/lazygit.tar.gz"
+        mode: "0644"
+
+    - name: Install lazygit
+      unarchive:
+        src: "/tmp/lazygit.tar.gz"
+        dest: /usr/local/bin
+        remote_src: yes
+        creates: /usr/local/bin/lazygit
+        mode: "0755"
+
+    # ========================================
+    # 8. GitHub CLI (gh)
+    # ========================================
+    - name: Add GitHub CLI GPG key
+      shell: |
+        curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg \
+          | gpg --dearmor -o /etc/apt/keyrings/githubcli-archive-keyring.gpg
+      args:
+        creates: /etc/apt/keyrings/githubcli-archive-keyring.gpg
+
+    - name: Get dpkg architecture for GitHub CLI repo
+      command: dpkg --print-architecture
+      register: dpkg_arch
+      changed_when: false
+
+    - name: Add GitHub CLI repository
+      apt_repository:
+        repo: "deb [arch={{ dpkg_arch.stdout }} signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main"
+        state: present
+        filename: github-cli
+
+    - name: Install GitHub CLI
+      apt:
+        name: gh
+        state: present
+        update_cache: yes
+        dpkg_options: 'force-confdef,force-confold'
+
+    # ========================================
+    # 8b. Git グローバル identity
+    # ========================================
+    - name: Configure git global user.name
+      become: yes
+      become_user: "{{ real_user }}"
+      community.general.git_config:
+        name: user.name
+        scope: global
+        value: "{{ git_user_name }}"
+
+    - name: Configure git global user.email
+      become: yes
+      become_user: "{{ real_user }}"
+      community.general.git_config:
+        name: user.email
+        scope: global
+        value: "{{ git_user_email }}"
+
+    # ========================================
+    # 9. fnm (Fast Node Manager) & Node.js LTS
+    # ========================================
+    - name: Install fnm
+      become: yes
+      become_user: "{{ real_user }}"
+      shell: curl -fsSL https://fnm.vercel.app/install | bash -s -- --skip-shell
+      args:
+        creates: "{{ home }}/.local/share/fnm/fnm"
+
+    - name: Install Node.js LTS via fnm
+      become: yes
+      become_user: "{{ real_user }}"
+      shell: |
+        export PATH="{{ home }}/.local/share/fnm:$PATH"
+        eval "$({{ home }}/.local/share/fnm/fnm env)"
+        {{ home }}/.local/share/fnm/fnm install --lts
+      args:
+        creates: "{{ home }}/.local/share/fnm/aliases/default"
+
+    # ========================================
+    # 10. HyperFrames (Chrome Headless Shell)
+    # ========================================
+    - name: Ensure HyperFrames Chrome Headless Shell
+      become: yes
+      become_user: "{{ real_user }}"
+      shell: |
+        export PATH="{{ home }}/.local/share/fnm:$PATH"
+        eval "$({{ home }}/.local/share/fnm/fnm env)"
+        npx hyperframes browser ensure
+      args:
+        creates: "{{ home }}/.cache/hyperframes/chrome"
+
+    # ========================================
+    # 11. uv (Python Package / Project Manager)
+    # ========================================
+    - name: Install uv
+      become: yes
+      become_user: "{{ real_user }}"
+      shell: curl -LsSf https://astral.sh/uv/install.sh | sh
+      args:
+        creates: "{{ home }}/.local/bin/uv"
+
+    # ========================================
+    # 12. WSL ブラウザ起動 (wslview 非推奨の代替)
+    # wslu はアーカイブ済み。Windows 標準の cmd.exe で URL を開く。
+    # ========================================
+    - name: Deploy WSL browser opener
+      copy:
+        dest: "{{ home }}/.local/bin/wsl-browser"
+        owner: "{{ real_user }}"
+        group: "{{ real_user }}"
+        mode: "0755"
+        content: |
+          #!/bin/bash
+          # Open URL in Windows default browser via WSL interop
+          exec cmd.exe /c start "" "$@"
+
+    # ========================================
+    # 13. 設定ファイル配置 (.zshenv / .zshrc)
+    # ========================================
+    - name: Deploy .zshenv
+      copy:
+        dest: "{{ home }}/.zshenv"
+        owner: "{{ real_user }}"
+        group: "{{ real_user }}"
+        mode: "0644"
+        content: |
+          # ----------------------------------------
+          # PATH Configuration
+          # ----------------------------------------
+          typeset -U path
+          path=(
+            $HOME/.local/bin
+            $HOME/.local/share/fnm
+            $path
+          )
+          export PATH
+
+    - name: Deploy .zshrc
+      copy:
+        dest: "{{ home }}/.zshrc"
+        owner: "{{ real_user }}"
+        group: "{{ real_user }}"
+        mode: "0644"
+        content: |
+          # ----------------------------------------
+          # Environment Variables
+          # ----------------------------------------
+          if [ -x "$HOME/.local/bin/wsl-browser" ] && command -v cmd.exe >/dev/null 2>&1; then
+            export BROWSER="$HOME/.local/bin/wsl-browser"
+          fi
+
+          # ----------------------------------------
+          # Modern CLI Aliases
+          # ----------------------------------------
+          if command -v batcat >/dev/null 2>&1; then
+            alias cat="batcat --style=plain"
+            alias bat="batcat"
+          fi
+
+          if command -v fdfind >/dev/null 2>&1; then
+            alias fd="fdfind"
+          fi
+
+          if command -v eza >/dev/null 2>&1; then
+            alias ls="eza --icons=auto"
+            alias ll="eza -lh --icons=auto --git"
+            alias la="eza -la --icons=auto --git"
+            alias lt="eza --tree --level=2 --icons=auto"
+          fi
+
+          if command -v lazygit >/dev/null 2>&1; then
+            alias lg="lazygit"
+          fi
+
+          if command -v rg >/dev/null 2>&1; then
+            alias grep="rg"
+          fi
+
+          # ----------------------------------------
+          # Tool Initializations
+          # ----------------------------------------
+          if [ -f "$HOME/.local/bin/sheldon" ]; then
+            eval "$("$HOME/.local/bin/sheldon" source)"
+          fi
+
+          if command -v starship >/dev/null 2>&1; then
+            eval "$(starship init zsh)"
+          fi
+
+          if command -v zoxide >/dev/null 2>&1; then
+            eval "$(zoxide init zsh)"
+            alias cd="z"
+          fi
+
+          if [ -f "$HOME/.local/share/fnm/fnm" ]; then
+            eval "$(fnm env --use-on-cd)"
+          fi
+
+          if command -v uv >/dev/null 2>&1; then
+            eval "$(uv generate-shell-completion zsh)"
+          fi
+
+          [ -f /usr/share/doc/fzf/examples/key-bindings.zsh ] && source /usr/share/doc/fzf/examples/key-bindings.zsh
+          [ -f /usr/share/doc/fzf/examples/completion.zsh ] && source /usr/share/doc/fzf/examples/completion.zsh
+
+    # ========================================
+    # 完了メッセージ
+    # ========================================
+    - name: Done message
+      debug:
+        msg: |
+          ========================================
+          🚀 セットアップ完了！ (WSL Ubuntu Ultra Modern + HyperFrames Ready)
+          ========================================
+          `exec zsh` を実行して設定を反映してください。
+          HyperFrames の動作確認: `npx hyperframes doctor`

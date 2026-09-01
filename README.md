@@ -1,65 +1,86 @@
-## Font 
-- [ ] [FiraCode Nerd Fonts](https://www.nerdfonts.com/font-downloads)
+# dotfiles
 
-## Utilities
+WSL2 上の Ubuntu 向けに、モダンな CLI 開発環境を Ansible で一括構築する dotfiles リポジトリです。
 
-- [x] [ansible](https://docs.ansible.com/ansible/latest/installation_guide/intro_installation.html)
-- [x] [stow](https://www.gnu.org/software/stow/manual/stow.html)
-- [x] [wslu](https://github.com/wslutilities/wslu) - WSL Utilities
+## 概要
 
-## Package Manager
+`setup.yml` を実行すると、zsh をデフォルトシェルにしたうえで、Starship・Sheldon・eza・zoxide・lazygit・GitHub CLI・fnm/Node.js LTS・uv・HyperFrames などをインストールし、`.zshenv` / `.zshrc` などの設定ファイルを配置します。
 
-- [x] [apt](https://ubuntu.com/server/docs/package-management)
-- [x] [mise](https://mise.jdx.dev/dev-tools/)
-- [x] [brew](https://brew.sh/)
+## 前提条件
 
-## Shell
+- WSL2 + Ubuntu（24.04 想定）
+- `sudo` 権限
+- Ansible
 
-- [x] [zsh](https://zsh.sourceforge.io/Guide/zshguide01.html)
-- [x] [zinit](https://github.com/zdharma-continuum/zinit)
-- [x] [starship](https://starship.rs/guide/#%F0%9F%9A%80-installation)
+```bash
+sudo apt update
+sudo apt install -y ansible
+```
 
-### Editor
+`community.general` コレクション（Git 設定用）が必要です。
 
-- [ ] [Neovim](https://github.com/neovim/neovim/blob/master/INSTALL.md#pre-built-archives-2)
-- [ ] [AstroNvim](https://github.com/AstroNvim/AstroNvim)
+```bash
+ansible-galaxy collection install community.general
+```
 
-## Dev Tools
+## セットアップ
 
-### Git
+リポジトリをクローンして playbook を実行します。
 
-- [x] [git](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git) - Git
-- [x] [gh](https://github.com/cli/cli#installation) - GitHub CLI
-- [x] [git-lfs](https://github.com/git-lfs/git-lfs/wiki/Installation) - Git Large File Storage
-- [x] [ghq](https://github.com/x-motemen/ghq) - GitHub Repository Manager
-- [x] [LazyGit](https://github.com/jesseduffield/lazygit?tab=readme-ov-file#installation) - Git UI
-- [x] [act](https://github.com/nektos/act) - GitHub Actions runner
+```bash
+git clone https://github.com/inovue/dotfiles.git
+cd dotfiles
+sudo ansible-playbook setup.yml
+```
 
-### Docker
+Git のグローバル設定はデフォルトで `SUDO_USER`（`sudo` 実行時の元ユーザー）を使います。上書きする場合:
 
-- [x] [Docker](https://docs.docker.com/engine/install/ubuntu/)
-- [x] [LazyDocker](https://github.com/jesseduffield/lazydocker)
-- [x] [Dive](https://github.com/wagoodman/dive)
+```bash
+sudo ansible-playbook setup.yml \
+  -e git_user_name="Your Name" \
+  -e git_user_email="you@example.com"
+```
 
-### Other
+完了後、シェルを再読み込みします。
 
-- [x] [bat](https://github.com/sharkdp/bat) - cat replacement
-- [x] [fzf](https://github.com/junegunn/fzf) - Fuzzy Finder
-- [x] [unar](https://github.com/ashang/unar/blob/master/README.md)
-- [x] [curl](https://curl.se/docs/install.html)
-- [x] [wget](https://www.gnu.org/software/wget/manual/wget.html)
-- [x] [vips](https://www.libvips.org/install.html) - Image processing
+```bash
+exec zsh
+```
 
-### Modern Commands
+## インストールされる主なツール
 
-- [x] [bottom](https://github.com/ClementTsang/bottom) - top replacement
-- [ ] [dog](https://github.com/ogham/dog) - dig replacement
-- [x] [dust](https://github.com/bootandy/dust) - du replacement
-- [x] [gping](https://github.com/orf/gping) - ping replacement
-- [x] [httpie](https://httpie.io/docs/cli/linux) - HTTPie
-- [x] [lsd](https://github.com/Peltoche/lsd) - ls replacement
-- [x] [mcfly](https://github.com/cantino/mcfly) - history replacement
-- [x] [procs](https://github.com/dalance/procs) - ps replacement
-- [x] [ripgrep](https://github.com/BurntSushi/ripgrep) - grep replacement
-- [x] [zellij](https://zellij.dev/documentation/installation) - tmux replacement
-- [x] [zoxide](https://github.com/ajeetdsouza/zoxide) - cd replacement
+| カテゴリ | ツール |
+| --- | --- |
+| シェル | zsh, Starship, Sheldon（zsh プラグイン管理） |
+| ファイル操作 | eza, zoxide, bat, ripgrep, fd-find, fzf |
+| Git | lazygit, gh, git-delta |
+| ランタイム | fnm + Node.js LTS, uv |
+| その他 | btop, HyperFrames（Chrome Headless Shell） |
+
+Sheldon で管理する zsh プラグイン:
+
+- zsh-completions
+- zsh-autosuggestions
+- zsh-syntax-highlighting
+
+## セットアップ後の確認
+
+HyperFrames の動作確認:
+
+```bash
+npx hyperframes doctor
+```
+
+WSL から Windows の既定ブラウザで URL を開く `~/.local/bin/wsl-browser` も配置されます（`BROWSER` 環境変数に設定）。
+
+## リポジトリ構成
+
+```
+.
+├── setup.yml    # Ansible playbook（環境構築の本体）
+└── .vscode/     # エディタ設定
+```
+
+## ライセンス
+
+個人用 dotfiles です。必要に応じて自由に fork してください。
