@@ -4,39 +4,29 @@ WSL2 上の Ubuntu 向けに、モダンな CLI 開発環境を Ansible で一�
 
 ## 概要
 
-`setup.yml` を実行すると、zsh をデフォルトシェルにしたうえで、Starship・Sheldon・eza・zoxide・lazygit・GitHub CLI・fnm/Node.js LTS・uv・Modal CLI・flyctl・bws・HyperFrames などをインストールし、`.zshenv` / `.zshrc` などの設定ファイルを配置します。
+`setup.sh` を実行すると、Ansible と必要なコレクションを導入したうえで `playbook.yml` を実行します。zsh をデフォルトシェルにしたうえで、Starship・Sheldon・eza・zoxide・lazygit・GitHub CLI・fnm/Node.js LTS・uv・Modal CLI・flyctl・bws・HyperFrames などをインストールし、`.zshenv` / `.zshrc` などの設定ファイルを配置します。
 
 ## 前提条件
 
 - WSL2 + Ubuntu（24.04 想定）
 - `sudo` 権限
-- Ansible
 
-```bash
-sudo apt update
-sudo apt install -y ansible
-```
-
-`community.general` コレクション（Git 設定用）が必要です。
-
-```bash
-ansible-galaxy collection install community.general
-```
+Ansible と `community.general` コレクションは `setup.sh` が未導入の場合に自動インストールします。
 
 ## セットアップ
 
-リポジトリをクローンして playbook を実行します。
+リポジトリをクローンしてスクリプトを実行します。
 
 ```bash
 git clone https://github.com/inovue/dotfiles.git
 cd dotfiles
-sudo ansible-playbook setup.yml
+./setup.sh
 ```
 
 Git のグローバル設定はデフォルトで `SUDO_USER`（`sudo` 実行時の元ユーザー）を使います。上書きする場合:
 
 ```bash
-sudo ansible-playbook setup.yml \
+./setup.sh \
   -e git_user_name="Your Name" \
   -e git_user_email="you@example.com"
 ```
@@ -45,6 +35,12 @@ sudo ansible-playbook setup.yml \
 
 ```bash
 exec zsh
+```
+
+### 手動で playbook を実行する場合
+
+```bash
+sudo ansible-playbook playbook.yml
 ```
 
 ## インストールされる主なツール
@@ -77,7 +73,8 @@ WSL から Windows の既定ブラウザで URL を開く `~/.local/bin/wsl-brow
 
 ```
 .
-├── setup.yml    # Ansible playbook（環境構築の本体）
+├── setup.sh      # ブートストラップ（Ansible 導入 + playbook 実行）
+├── playbook.yml  # Ansible playbook（環境構築の本体）
 └── .vscode/     # エディタ設定
 ```
 
