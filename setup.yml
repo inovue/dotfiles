@@ -356,6 +356,59 @@
       args:
         creates: "{{ home }}/.local/bin/uv"
 
+    - name: Install Modal CLI via uv
+      become: yes
+      become_user: "{{ real_user }}"
+      shell: >
+        {{ home }}/.local/bin/uv tool install modal
+        --from "git+https://github.com/modal-labs/modal-client#subdirectory=py"
+      args:
+        creates: "{{ home }}/.local/share/uv/tools/modal"
+
+    # ========================================
+    # 11b. flyctl (Fly.io CLI)
+    # https://fly.io/docs/flyctl/install/
+    # ========================================
+    - name: Install flyctl
+      become: yes
+      become_user: "{{ real_user }}"
+      shell: curl -L https://fly.io/install.sh | sh
+      args:
+        creates: "{{ home }}/.fly/bin/flyctl"
+
+    # ========================================
+    # 11c. bws (Bitwarden Secrets Manager CLI)
+    # https://bitwarden.com/help/secrets-manager-cli/
+    # https://github.com/bitwarden/sdk-sm/releases
+    # ========================================
+    - name: Set architecture fact for bws
+      set_fact:
+        bws_arch: "{{ 'x86_64' if uname_m.stdout == 'x86_64' else 'aarch64' }}"
+
+    - name: Get latest bws release tag
+      uri:
+        url: https://api.github.com/repos/bitwarden/sdk-sm/releases?per_page=20
+        return_content: yes
+      register: bws_releases
+
+    - name: Set bws version fact
+      set_fact:
+        bws_version: "{{ (bws_releases.json | selectattr('tag_name', 'match', '^bws-v') | list | first).tag_name | regex_replace('^bws-v', '') }}"
+
+    - name: Download bws archive from GitHub releases
+      get_url:
+        url: "https://github.com/bitwarden/sdk-sm/releases/download/bws-v{{ bws_version }}/bws-{{ bws_arch }}-unknown-linux-gnu-{{ bws_version }}.zip"
+        dest: "/tmp/bws-{{ bws_version }}.zip"
+        mode: "0644"
+
+    - name: Install bws
+      unarchive:
+        src: "/tmp/bws-{{ bws_version }}.zip"
+        dest: /usr/local/bin
+        remote_src: yes
+        creates: /usr/local/bin/bws
+        mode: "0755"
+
     # ========================================
     # 12. WSL ブラウザ起動 (wslview 非推奨の代替)
     # wslu はアーカイブ済み。Windows 標準の cmd.exe で URL を開く。
@@ -388,6 +441,7 @@
           path=(
             $HOME/.local/bin
             $HOME/.local/share/fnm
+            $HOME/.fly/bin
             $path
           )
           export PATH

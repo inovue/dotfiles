@@ -4,7 +4,7 @@ WSL2 上の Ubuntu 向けに、モダンな CLI 開発環境を Ansible で一�
 
 ## 概要
 
-`setup.yml` を実行すると、zsh をデフォルトシェルにしたうえで、Starship・Sheldon・eza・zoxide・lazygit・GitHub CLI・fnm/Node.js LTS・uv・HyperFrames などをインストールし、`.zshenv` / `.zshrc` などの設定ファイルを配置します。
+`setup.yml` を実行すると、zsh をデフォルトシェルにしたうえで、Starship・Sheldon・eza・zoxide・lazygit・GitHub CLI・fnm/Node.js LTS・uv・Modal CLI・flyctl・bws・HyperFrames などをインストールし、`.zshenv` / `.zshrc` などの設定ファイルを配置します。
 
 ## 前提条件
 
@@ -54,8 +54,8 @@ exec zsh
 | シェル | zsh, Starship, Sheldon（zsh プラグイン管理） |
 | ファイル操作 | eza, zoxide, bat, ripgrep, fd-find, fzf |
 | Git | lazygit, gh, git-delta |
-| ランタイム | fnm + Node.js LTS, uv |
-| その他 | btop, HyperFrames（Chrome Headless Shell） |
+| ランタイム | fnm + Node.js LTS, uv, Modal CLI |
+| その他 | btop, flyctl, bws, HyperFrames（Chrome Headless Shell） |
 
 Sheldon で管理する zsh プラグイン:
 
