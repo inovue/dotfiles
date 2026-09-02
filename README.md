@@ -13,7 +13,9 @@ cd dotfiles
 exec zsh   # デフォルトシェル変更・PATH・zsh 設定を反映（必須）
 ```
 
-- `setup.sh` — Ansible / `community.general` を未導入なら入れてから playbook を実行
+Send URL がある場合は `./setup.sh --bws-send-url "https://send.bitwarden.com/#..."` も可。
+
+- `setup.sh` — Ansible / `community.general` を未導入なら入れてから playbook を実行。末尾で bws トークン設定も可能
 - 再実行可（冪等）。ネットワーク必須
 - Git デフォルト: `user.name` = `SUDO_USER`、`user.email` = `{user}@users.noreply.github.com`
 
@@ -23,7 +25,9 @@ exec zsh   # デフォルトシェル変更・PATH・zsh 設定を反映（必�
   -e git_user_email="you@example.com"
 ```
 
-手動: `sudo ansible-playbook playbook.yml`（`-e` も同様に渡せる）
+Bitwarden Send URL は `--bws-send-url`、環境変数 `BWS_SEND_URL`、または対話プロンプトで渡せる。詳細は [docs/bws.md](docs/bws.md)。
+
+手動: `sudo ansible-playbook playbook.yml`（`-e` も同様に渡せる。bws トークン設定は `./scripts/setup_bws.sh` で別途）
 
 ## インストール内容
 
@@ -48,8 +52,8 @@ exec zsh   # デフォルトシェル変更・PATH・zsh 設定を反映（必�
 | GitHub CLI | `gh auth login` |
 | Fly.io | `fly auth login` |
 | Modal | `modal token new` |
-| Bitwarden SM | `export BWS_ACCESS_TOKEN=...` |
-| genmedia | `genmedia setup` または `export FAL_KEY=...` |
+| Bitwarden SM | [docs/bws.md](docs/bws.md) — `setup.sh` 時に未設定なら `./scripts/setup_bws.sh` |
+| genmedia | SM に `FAL_KEY` 登録後 `genmedia`（bws 設定済みが前提） |
 | Cursor CLI | `agent login` |
 
 ```bash
