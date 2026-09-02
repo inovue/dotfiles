@@ -3,7 +3,7 @@
   hosts: localhost
   become: yes
   vars:
-    real_user: "{{ lookup('env', 'SUDO_USER') | default(ansible_env.USER | default(ansible_user_id), true) }}"
+    real_user: "{{ lookup('env', 'SUDO_USER') | default(lookup('env', 'USER'), true) }}"
     home: "{{ '/root' if real_user == 'root' else '/home/' + real_user }}"
     # Git グローバル設定（上書き例: -e git_user_name="Your Name" -e git_user_email="you@example.com"）
     git_user_name: "{{ real_user }}"
@@ -408,6 +408,17 @@
         remote_src: yes
         creates: /usr/local/bin/bws
         mode: "0755"
+
+    # ========================================
+    # 11d. Cursor CLI (agent)
+    # https://cursor.com/docs/cli/overview
+    # ========================================
+    - name: Install Cursor CLI
+      become: yes
+      become_user: "{{ real_user }}"
+      shell: curl -fsSL https://cursor.com/install | bash
+      args:
+        creates: "{{ home }}/.local/bin/agent"
 
     # ========================================
     # 12. WSL ブラウザ起動 (wslview 非推奨の代替)
