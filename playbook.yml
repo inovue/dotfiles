@@ -150,7 +150,12 @@
       uri:
         url: https://api.github.com/repos/rossmacarthur/sheldon/releases/latest
         return_content: yes
+        headers:
+          Accept: application/vnd.github+json
       register: sheldon_latest_release
+      retries: 3
+      delay: 5
+      until: sheldon_latest_release is succeeded
 
     - name: Set Sheldon Version Fact
       set_fact:
@@ -168,6 +173,8 @@
         dest: "{{ home }}/.local/bin"
         remote_src: yes
         creates: "{{ home }}/.local/bin/sheldon"
+        owner: "{{ real_user }}"
+        group: "{{ real_user }}"
         mode: "0755"
 
     - name: Ensure ~/.config/sheldon directory exists
@@ -214,7 +221,7 @@
 
     - name: Add eza repository
       apt_repository:
-        repo: "deb [signed-by=/etc/apt/keyrings/gierens.gpg] http://deb.gierens.de stable main"
+        repo: "deb [signed-by=/etc/apt/keyrings/gierens.gpg] https://deb.gierens.de stable main"
         state: present
         filename: gierens
 
@@ -246,7 +253,12 @@
       uri:
         url: https://api.github.com/repos/jesseduffield/lazygit/releases/latest
         return_content: yes
+        headers:
+          Accept: application/vnd.github+json
       register: lazygit_latest_release
+      retries: 3
+      delay: 5
+      until: lazygit_latest_release is succeeded
 
     - name: Set lazygit Version Fact
       set_fact:
@@ -333,6 +345,36 @@
       args:
         creates: "{{ home }}/.local/share/fnm/aliases/default"
 
+    - name: Read npm allow-scripts setting
+      become: yes
+      become_user: "{{ real_user }}"
+      shell: |
+        export PATH="{{ home }}/.local/share/fnm:$PATH"
+        eval "$({{ home }}/.local/share/fnm/fnm env)"
+        npm config get allow-scripts --location=user
+      register: npm_allow_scripts
+      changed_when: false
+      failed_when: false
+
+    - name: Allow bun postinstall for npm global installs
+      become: yes
+      become_user: "{{ real_user }}"
+      shell: |
+        export PATH="{{ home }}/.local/share/fnm:$PATH"
+        eval "$({{ home }}/.local/share/fnm/fnm env)"
+        npm config set allow-scripts=bun --location=user
+      when: npm_allow_scripts.stdout | trim != 'bun'
+
+    - name: Install hunkdiff via npm
+      become: yes
+      become_user: "{{ real_user }}"
+      shell: |
+        export PATH="{{ home }}/.local/share/fnm:$PATH"
+        eval "$({{ home }}/.local/share/fnm/fnm env)"
+        npm install -g hunkdiff --allow-scripts=bun
+      args:
+        creates: "{{ home }}/.local/share/fnm/aliases/default/bin/hunk"
+
     # ========================================
     # 10. HyperFrames (Chrome Headless Shell)
     # ========================================
@@ -389,7 +431,12 @@
       uri:
         url: https://api.github.com/repos/bitwarden/sdk-sm/releases?per_page=20
         return_content: yes
+        headers:
+          Accept: application/vnd.github+json
       register: bws_releases
+      retries: 3
+      delay: 5
+      until: bws_releases is succeeded
 
     - name: Set bws version fact
       set_fact:
@@ -419,6 +466,30 @@
       shell: curl -fsSL https://cursor.com/install | bash
       args:
         creates: "{{ home }}/.local/bin/agent"
+
+    # ========================================
+    # 11e. bun (JavaScript runtime & package manager)
+    # https://bun.sh/docs/installation
+    # ========================================
+    - name: Install bun
+      become: yes
+      become_user: "{{ real_user }}"
+      shell: curl -fsSL https://bun.sh/install | bash
+      args:
+        creates: "{{ home }}/.bun/bin/bun"
+
+    # ========================================
+    # 11f. genmedia (fal.ai CLI)
+    # https://github.com/fal-ai-community/genmedia-cli
+    # ========================================
+    - name: Install genmedia
+      become: yes
+      become_user: "{{ real_user }}"
+      shell: |
+        export PATH="{{ home }}/.local/bin:$PATH"
+        curl -fsSL https://genmedia.sh/install | bash
+      args:
+        creates: "{{ home }}/.genmedia/bin/genmedia"
 
     # ========================================
     # 12. WSL ブラウザ起動 (wslview 非推奨の代替)
@@ -453,6 +524,7 @@
             $HOME/.local/bin
             $HOME/.local/share/fnm
             $HOME/.fly/bin
+            $HOME/.bun/bin
             $path
           )
           export PATH

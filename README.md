@@ -1,29 +1,21 @@
 # dotfiles
 
-WSL2 上の Ubuntu 向けに、モダンな CLI 開発環境を Ansible で一括構築する dotfiles リポジトリです。
+WSL2 + **Ubuntu 24.04** 向け CLI 開発環境を Ansible で一括構築する。
 
-## 概要
-
-`setup.sh` を実行すると、Ansible と必要なコレクションを導入したうえで `playbook.yml` を実行します。zsh をデフォルトシェルにしたうえで、Starship・Sheldon・eza・zoxide・lazygit・GitHub CLI・fnm/Node.js LTS・uv・Modal CLI・flyctl・bws・HyperFrames などをインストールし、`.zshenv` / `.zshrc` などの設定ファイルを配置します。
-
-## 前提条件
-
-- WSL2 + Ubuntu（24.04 想定）
-- `sudo` 権限
-
-Ansible と `community.general` コレクションは `setup.sh` が未導入の場合に自動インストールします。
+> 22.04 等は playbook 内の apt パッケージ名が合わず失敗する。24.04 以外は未検証。
 
 ## セットアップ
-
-リポジトリをクローンしてスクリプトを実行します。
 
 ```bash
 git clone https://github.com/inovue/dotfiles.git
 cd dotfiles
 ./setup.sh
+exec zsh   # デフォルトシェル変更・PATH・zsh 設定を反映（必須）
 ```
 
-Git のグローバル設定はデフォルトで `SUDO_USER`（`sudo` 実行時の元ユーザー）を使います。上書きする場合:
+- `setup.sh` — Ansible / `community.general` を未導入なら入れてから playbook を実行
+- 再実行可（冪等）。ネットワーク必須
+- Git デフォルト: `user.name` = `SUDO_USER`、`user.email` = `{user}@users.noreply.github.com`
 
 ```bash
 ./setup.sh \
@@ -31,53 +23,47 @@ Git のグローバル設定はデフォルトで `SUDO_USER`（`sudo` 実行時
   -e git_user_email="you@example.com"
 ```
 
-完了後、シェルを再読み込みします。
+手動: `sudo ansible-playbook playbook.yml`（`-e` も同様に渡せる）
 
-```bash
-exec zsh
-```
-
-### 手動で playbook を実行する場合
-
-```bash
-sudo ansible-playbook playbook.yml
-```
-
-## インストールされる主なツール
+## インストール内容
 
 | カテゴリ | ツール |
 | --- | --- |
-| シェル | zsh, Starship, Sheldon（zsh プラグイン管理） |
-| ファイル操作 | eza, zoxide, bat, ripgrep, fd-find, fzf |
-| Git | lazygit, gh, git-delta |
-| ランタイム | fnm + Node.js LTS, uv, Modal CLI |
-| その他 | btop, flyctl, bws, HyperFrames（Chrome Headless Shell） |
+| シェル | zsh, Starship, Sheldon (+ completions / autosuggestions / syntax-highlighting) |
+| ファイル操作 | eza, zoxide, bat, ripgrep, fd-find, fzf, btop |
+| Git | lazygit, gh, git-delta, hunk (hunkdiff) |
+| ランタイム | fnm + Node.js LTS, bun, uv, Modal CLI |
+| AI / デプロイ | genmedia, Cursor CLI (`agent`) |
+| インフラ | flyctl, bws |
+| メディア | HyperFrames, ffmpeg, libvips, Noto CJK フォント |
 
-Sheldon で管理する zsh プラグイン:
+`.zshenv` / `.zshrc` / `starship.toml` / `sheldon/plugins.toml` を配置。WSL では `wsl-browser` を `BROWSER` に設定（`cmd.exe` interop 前提）。
 
-- zsh-completions
-- zsh-autosuggestions
-- zsh-syntax-highlighting
+## セットアップ後
 
-## セットアップ後の確認
+使うツールだけ認証・初期設定を行う。
 
-HyperFrames の動作確認:
+| ツール | コマンド |
+| --- | --- |
+| GitHub CLI | `gh auth login` |
+| Fly.io | `fly auth login` |
+| Modal | `modal token new` |
+| Bitwarden SM | `export BWS_ACCESS_TOKEN=...` |
+| genmedia | `genmedia setup` または `export FAL_KEY=...` |
+| Cursor CLI | `agent login` |
 
 ```bash
+node -v && uv --version && gh --version
 npx hyperframes doctor
 ```
 
-WSL から Windows の既定ブラウザで URL を開く `~/.local/bin/wsl-browser` も配置されます（`BROWSER` 環境変数に設定）。
+## トラブルシューティング
 
-## リポジトリ構成
+| 症状 | 対処 |
+| --- | --- |
+| apt / パッケージ名エラー | Ubuntu 24.04 か確認 |
+| Sheldon / lazygit / bws の取得失敗 | GitHub API rate limit — 時間をおいて `./setup.sh` を再実行 |
+| `node` / エイリアスが効かない | `exec zsh` または新しいターミナル |
+| ブラウザが開かない | WSL interop 有効化、`cmd.exe` が PATH にあるか確認 |
 
-```
-.
-├── setup.sh      # ブートストラップ（Ansible 導入 + playbook 実行）
-├── playbook.yml  # Ansible playbook（環境構築の本体）
-└── .vscode/     # エディタ設定
-```
-
-## ライセンス
-
-個人用 dotfiles です。必要に応じて自由に fork してください。
+個人用 dotfiles。自由に fork してよい。
