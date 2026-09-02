@@ -9,7 +9,7 @@ fi
 
 SEND_URL="$1"
 
-# 2. URL から ID と 暗号化キーを抽出
+# 2. URL から ID とキーを抽出（形式チェック用）
 # 形式: https://send.bitwarden.com/#<send_id>/<key>
 FRAGMENT=$(echo "$SEND_URL" | sed -n 's#.*\#\([^/]*\)/\([^/]*\)#\1 \2#p')
 SEND_ID=$(echo "$FRAGMENT" | awk '{print $1}')
@@ -20,36 +20,37 @@ if [ -z "$SEND_ID" ] || [ -z "$B64_KEY" ]; then
   exit 1
 fi
 
+receive_send_token() {
+  local url="$1"
+
+  if command -v bw >/dev/null 2>&1; then
+    BW_NOINTERACTION=true bw send receive "$url" 2>/dev/null
+    return $?
+  fi
+
+  if command -v npx >/dev/null 2>&1; then
+    BW_NOINTERACTION=true npx --yes @bitwarden/cli send receive "$url" 2>/dev/null
+    return $?
+  fi
+
+  echo "エラー: Bitwarden CLI (bw) が見つかりません。" >&2
+  echo "  npm install -g @bitwarden/cli" >&2
+  echo "  または Node.js + npx をインストールしてください。" >&2
+  return 127
+}
+
 echo "Bitwarden Send からデータを取得中..."
 
-# 3. Bitwarden API から暗号化ペロードを取得
-RESPONSE=$(curl -s "https://vault.bitwarden.com/api/sends/$SEND_ID")
+TOKEN=$(receive_send_token "$SEND_URL")
+RC=$?
+TOKEN=$(echo "$TOKEN" | tr -d '\r\n')
 
-# レスポンスから暗号化されたテキスト ( cipherText ) を抽出
-ENCRYPTED_TEXT=$(echo "$RESPONSE" | grep -o '"text":{"text":"[^"]*' | sed 's/"text":{"text":"//')
-
-if [ -z "$ENCRYPTED_TEXT" ]; then
+if [ "$RC" -ne 0 ] || [ -z "$TOKEN" ]; then
   echo "エラー: データの取得に失敗したか、Send が無効・期限切れです。"
   exit 1
 fi
 
-# 4. 暗号化データを復号 (AES-256-CBC)
-# Bitwarden Send の暗号化形式: 2.<iv>|<cipherText>
-IV_B64=$(echo "$ENCRYPTED_TEXT" | cut -d'|' -f1 | sed 's/2\.//')
-CIPHER_B64=$(echo "$ENCRYPTED_TEXT" | cut -d'|' -f2)
-
-# OpenSSL で復号できるようにキーとIVを Hex 変換
-KEY_HEX=$(echo "$B64_KEY" | base64 --decode 2>/dev/null | xxd -p | tr -d '\n')
-IV_HEX=$(echo "$IV_B64" | base64 --decode 2>/dev/null | xxd -p | tr -d '\n')
-
-TOKEN=$(echo "$CIPHER_B64" | base64 --decode 2>/dev/null | openssl enc -d -aes-256-cbc -K "$KEY_HEX" -iv "$IV_HEX" 2>/dev/null)
-
-if [ -z "$TOKEN" ]; then
-  echo "エラー: トークンの復号に失敗しました。"
-  exit 1
-fi
-
-# 5. ~/.config/inovue/bws.env への書き込み
+# 3. ~/.config/inovue/bws.env への書き込み
 BWS_ENV="$HOME/.config/inovue/bws.env"
 mkdir -p "$(dirname "$BWS_ENV")"
 
