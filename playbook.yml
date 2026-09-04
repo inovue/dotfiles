@@ -48,6 +48,8 @@
           - btop
           - git-delta
           - libatomic1  # pnpm スタンドアロンバイナリの実行時依存
+          # --- WSL2/WSLg: Helix 等のクリップボード連携（wl-copy / wl-paste） ---
+          - wl-clipboard
           # --- フォント（文字化け防止 / HyperFrames レンダリング用） ---
           - fonts-liberation
           - fonts-noto-cjk
@@ -388,6 +390,71 @@
         npx hyperframes browser ensure
       args:
         creates: "{{ home }}/.cache/hyperframes/chrome"
+
+    # ========================================
+    # 10b. Helix editor (Ubuntu PPA) + WSLg clipboard
+    # https://docs.helix-editor.com/package-managers.html#ubuntu-ppa
+    # wl-clipboard はセクション 1 の apt で導入（WSLg Wayland 連携・自動検出）
+    # config: 公式 example + 定番おすすめ（Helix 24.07 互換）
+    # https://docs.helix-editor.com/configuration.html
+    # ========================================
+    - name: Add Helix PPA
+      apt_repository:
+        repo: ppa:maveonair/helix-editor
+        state: present
+
+    - name: Install Helix
+      apt:
+        name: helix
+        state: present
+        update_cache: yes
+        dpkg_options: 'force-confdef,force-confold'
+
+    - name: Ensure ~/.config/helix directory exists
+      file:
+        path: "{{ home }}/.config/helix"
+        state: directory
+        owner: "{{ real_user }}"
+        group: "{{ real_user }}"
+        mode: "0755"
+
+    - name: Deploy Helix config.toml
+      copy:
+        dest: "{{ home }}/.config/helix/config.toml"
+        owner: "{{ real_user }}"
+        group: "{{ real_user }}"
+        mode: "0644"
+        content: |
+          # Helix config (24.07 / PPA)
+          # 公式 example: https://docs.helix-editor.com/configuration.html
+          # 定番: relative 行番号 / cursorline / color-modes / indent-guides / soft-wrap
+          # クリップボードは wl-clipboard を自動検出（clipboard-provider は 25.x 以降）
+          theme = "onedark"
+
+          [editor]
+          line-number = "relative"
+          cursorline = true
+          color-modes = true
+          bufferline = "multiple"
+          true-color = true
+          rulers = [80]
+
+          [editor.cursor-shape]
+          insert = "bar"
+          normal = "block"
+          select = "underline"
+
+          [editor.file-picker]
+          hidden = false
+
+          [editor.lsp]
+          display-inlay-hints = true
+
+          [editor.indent-guides]
+          render = true
+
+          [editor.soft-wrap]
+          enable = true
 
     # ========================================
     # 11. uv (Python Package / Project Manager)
