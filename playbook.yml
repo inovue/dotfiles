@@ -399,14 +399,21 @@
       args:
         creates: "{{ home }}/.local/bin/uv"
 
+    # Modal はシステム Python 3.14 / git ソースだと modal_proto(api_pb2) が欠けるため
+    # PyPI 版を Python 3.12 で入れる
+    - name: Ensure Python 3.12 for Modal CLI
+      become: yes
+      become_user: "{{ real_user }}"
+      shell: "{{ home }}/.local/bin/uv python install 3.12"
+      args:
+        creates: "{{ home }}/.local/share/uv/python/cpython-3.12-linux-x86_64-gnu/bin/python3.12"
+
     - name: Install Modal CLI via uv
       become: yes
       become_user: "{{ real_user }}"
-      shell: >
-        {{ home }}/.local/bin/uv tool install modal
-        --from "git+https://github.com/modal-labs/modal-client#subdirectory=py"
+      shell: "{{ home }}/.local/bin/uv tool install modal --python 3.12"
       args:
-        creates: "{{ home }}/.local/share/uv/tools/modal"
+        creates: "{{ home }}/.local/share/uv/tools/modal/lib/python3.12/site-packages/modal_proto/api_pb2.py"
 
     # ========================================
     # 11b. flyctl (Fly.io CLI)
