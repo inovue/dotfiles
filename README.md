@@ -33,10 +33,10 @@ Bitwarden Send URL は `--bws-send-url`、環境変数 `BWS_SEND_URL`、また�
 
 | カテゴリ | ツール |
 | --- | --- |
-| シェル | zsh, Starship, Sheldon (+ completions / autosuggestions / syntax-highlighting) |
+| シェル | zsh, Starship, Sheldon (+ completions / autosuggestions / syntax-highlighting), herdr |
 | ファイル操作 | eza, zoxide, bat, ripgrep, fd-find, fzf, btop |
 | Git | lazygit, gh, git-delta, hunk (hunkdiff) |
-| ランタイム | fnm + Node.js LTS, bun, uv, Modal CLI |
+| ランタイム | fnm + Node.js LTS, bun, pnpm, uv, Modal CLI |
 | AI / デプロイ | genmedia, Cursor CLI (`agent`) |
 | インフラ | flyctl, bws |
 | メディア | HyperFrames, ffmpeg, libvips, Noto CJK フォント |

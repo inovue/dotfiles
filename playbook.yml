@@ -47,6 +47,7 @@
           - fzf
           - btop
           - git-delta
+          - libatomic1  # pnpm スタンドアロンバイナリの実行時依存
           # --- フォント（文字化け防止 / HyperFrames レンダリング用） ---
           - fonts-liberation
           - fonts-noto-cjk
@@ -492,6 +493,30 @@
         creates: "{{ home }}/.genmedia/bin/genmedia"
 
     # ========================================
+    # 11g. herdr (terminal multiplexer)
+    # https://herdr.dev/docs/install/
+    # ========================================
+    - name: Install herdr
+      become: yes
+      become_user: "{{ real_user }}"
+      shell: curl -fsSL https://herdr.dev/install.sh | sh
+      args:
+        creates: "{{ home }}/.local/bin/herdr"
+
+    # ========================================
+    # 11h. pnpm (Node.js package manager)
+    # https://pnpm.io/ja/installation
+    # ========================================
+    - name: Install pnpm
+      become: yes
+      become_user: "{{ real_user }}"
+      environment:
+        SHELL: /usr/bin/zsh
+      shell: curl -fsSL https://get.pnpm.io/install.sh | sh -
+      args:
+        creates: "{{ home }}/.local/share/pnpm/bin/pnpm"
+
+    # ========================================
     # 12. WSL ブラウザ起動 (wslview 非推奨の代替)
     # wslu はアーカイブ済み。Windows 標準の cmd.exe で URL を開く。
     # ========================================
@@ -520,12 +545,14 @@
           # PATH Configuration
           # ----------------------------------------
           typeset -U path
+          export PNPM_HOME="$HOME/.local/share/pnpm"
           path=(
             $HOME/.local/bin
             $HOME/.local/share/fnm
             $HOME/.fly/bin
             $HOME/.bun/bin
             $HOME/.genmedia/bin
+            $PNPM_HOME/bin
             $path
           )
           export PATH
