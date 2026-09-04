@@ -27,7 +27,9 @@ Send URL がある場合は `./setup.sh --bws-send-url "https://send.bitwarden.c
 
 Bitwarden Send URL は `--bws-send-url`、環境変数 `BWS_SEND_URL`、または対話プロンプトで渡せる。詳細は [docs/bws.md](docs/bws.md)。
 
-手動: `sudo ansible-playbook playbook.yml`（`-e` も同様に渡せる。bws トークン設定は `./scripts/setup_bws.sh` で別途）
+WSL 上では続けて [docs/agent-browser-win.md](docs/agent-browser-win.md) のブリッジ（Windows Chrome 専用プロファイル + agent-browser）もセットアップする。単体実行は `./scripts/setup_agent_browser_win.sh`。
+
+手動: `sudo ansible-playbook playbook.yml`（`-e` も同様に渡せる。bws トークン設定は `./scripts/setup_bws.sh`、Windows Chrome ブリッジは `./scripts/setup_agent_browser_win.sh` で別途）
 
 ## インストール内容
 
@@ -37,7 +39,7 @@ Bitwarden Send URL は `--bws-send-url`、環境変数 `BWS_SEND_URL`、また�
 | ファイル操作 | eza, zoxide, bat, ripgrep, fd-find, fzf, btop |
 | Git | lazygit, gh, git-delta, hunk (hunkdiff) |
 | ランタイム | fnm + Node.js LTS, bun, pnpm, uv, Modal CLI |
-| AI / デプロイ | genmedia, Cursor CLI (`agent`) |
+| AI / デプロイ | genmedia, Cursor CLI (`agent`), agent-browser（Linux）+ agent-browser-win（WSL→Windows Chrome） |
 | インフラ | flyctl, bws |
 | メディア | HyperFrames, ffmpeg, libvips, Noto CJK フォント |
 
@@ -53,6 +55,7 @@ Bitwarden Send URL は `--bws-send-url`、環境変数 `BWS_SEND_URL`、また�
 | Fly.io | `fly auth login` |
 | Modal | `modal token new` |
 | Bitwarden SM | [docs/bws.md](docs/bws.md) — `setup.sh` 時に未設定なら `./scripts/setup_bws.sh` |
+| Windows Chrome (agent-browser-win) | [docs/agent-browser-win.md](docs/agent-browser-win.md) — `setup.sh` 後に `agent-browser-win start` で一度ログイン |
 | genmedia | SM に `FAL_KEY` 登録後 `genmedia`（bws 設定済みが前提） |
 | Cursor CLI | `agent login` |
 
@@ -69,5 +72,6 @@ npx hyperframes doctor
 | Sheldon / lazygit / bws の取得失敗 | GitHub API rate limit — 時間をおいて `./setup.sh` を再実行 |
 | `node` / エイリアスが効かない | `exec zsh` または新しいターミナル |
 | ブラウザが開かない | WSL interop 有効化、`cmd.exe` が PATH にあるか確認 |
+| ログイン済みサイトを自動化できない | [docs/agent-browser-win.md](docs/agent-browser-win.md) — `agent-browser-win` を使う（普段の Chrome プロファイルは不可） |
 
 個人用 dotfiles。自由に fork してよい。

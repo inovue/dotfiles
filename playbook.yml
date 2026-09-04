@@ -71,6 +71,7 @@
           - libgtk-3-0t64
           - libnspr4
           - libnss3
+          - libnss3-tools  # agent-browser install --with-deps / CA 用 certutil
           - libpango-1.0-0
           - libpangocairo-1.0-0
           - libvulkan1
@@ -377,6 +378,45 @@
         npm install -g hunkdiff --allow-scripts=bun
       args:
         creates: "{{ home }}/.local/share/fnm/aliases/default/bin/hunk"
+
+    # ========================================
+    # 9b. agent-browser (Vercel Labs) + Cursor skill
+    # https://github.com/vercel-labs/agent-browser
+    # 公式推奨は npm -g（ネイティブバイナリ + postinstall で bin 差し替え）。
+    # pnpm add -g も upgrade 対応だが、この playbook では npm に揃える。
+    # Linux のシステム依存はセクション 1 の Chromium/apt 群 + libnss3-tools で賄う
+    #（become_user では apt できないため install --with-deps は使わない）。
+    # Skill: https://skills.sh/vercel-labs/agent-browser
+    # ========================================
+    - name: Install agent-browser via npm
+      become: yes
+      become_user: "{{ real_user }}"
+      shell: |
+        export PATH="{{ home }}/.local/share/fnm:$PATH"
+        eval "$({{ home }}/.local/share/fnm/fnm env)"
+        npm install -g agent-browser
+      args:
+        creates: "{{ home }}/.local/share/fnm/aliases/default/bin/agent-browser"
+
+    - name: Install agent-browser Chrome for Testing
+      become: yes
+      become_user: "{{ real_user }}"
+      shell: |
+        export PATH="{{ home }}/.local/share/fnm:$PATH"
+        eval "$({{ home }}/.local/share/fnm/fnm env)"
+        agent-browser install
+      args:
+        creates: "{{ home }}/.agent-browser/browsers"
+
+    - name: Install agent-browser skill globally for Cursor
+      become: yes
+      become_user: "{{ real_user }}"
+      shell: |
+        export PATH="{{ home }}/.local/share/fnm:$PATH"
+        eval "$({{ home }}/.local/share/fnm/fnm env)"
+        npx -y skills add vercel-labs/agent-browser -g -a cursor -s agent-browser -y
+      args:
+        creates: "{{ home }}/.cursor/skills/agent-browser/SKILL.md"
 
     # ========================================
     # 10. HyperFrames (Chrome Headless Shell)

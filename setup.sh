@@ -62,6 +62,17 @@ run_bws_setup() {
   zsh "$ROOT_DIR/scripts/setup_bws.sh" "$send_url"
 }
 
+run_agent_browser_win_setup() {
+  # WSL + Windows Chrome CDP bridge for Cursor
+  if ! command -v powershell.exe >/dev/null 2>&1; then
+    log "Skipping agent-browser-win setup (powershell.exe not found; not WSL?)"
+    return 0
+  fi
+
+  log "Configuring agent-browser-win (WSL → Windows Chrome)..."
+  bash "$ROOT_DIR/scripts/setup_agent_browser_win.sh"
+}
+
 ensure_ansible
 ensure_community_general
 
@@ -94,3 +105,4 @@ sudo ansible-playbook "$ROOT_DIR/playbook.yml" "${ANSIBLE_ARGS[@]}"
 BWS_SEND_URL="${BWS_SEND_URL:-$BWS_SEND_URL_ARG}"
 export BWS_SEND_URL
 run_bws_setup
+run_agent_browser_win_setup
