@@ -1,0 +1,22 @@
+{
+  "name": "@agent-skills/asset-generator",
+  "version": "2.3.4",
+  "description": "LP asset generation via genmedia CLI + local grid-splitting (Ubuntu/Linux)",
+  "type": "module",
+  "bin": {
+    "asset-generator": "./src/cli.ts"
+  },
+  "scripts": {
+    "start": "tsx src/cli.ts",
+    "test": "tsx --test tests/**/*.test.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "sharp": "^0.34.2"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.30",
+    "tsx": "^4.20.3",
+    "typescript": "^5.8.3"
+  }
+}
