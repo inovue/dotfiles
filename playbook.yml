@@ -631,6 +631,15 @@
         creates: "{{ home }}/.local/share/pnpm/bin/pnpm"
 
     # ========================================
+    # 11i. asset-generator Cursor skill (global)
+    # Repo SSOT: skills/asset-generator/ → ~/.cursor/skills (+ ~/.agents/skills symlink)
+    # ========================================
+    - name: Install asset-generator skill globally
+      become: yes
+      become_user: "{{ real_user }}"
+      shell: bash "{{ playbook_dir }}/scripts/setup_asset_generator.sh"
+
+    # ========================================
     # 12. WSL ブラウザ起動 (wslview 非推奨の代替)
     # wslu はアーカイブ済み。Windows 標準の cmd.exe で URL を開く。
     # ========================================

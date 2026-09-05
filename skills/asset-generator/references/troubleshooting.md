@@ -17,10 +17,11 @@
 ### 2. `tsx not installed` / `ERR_PNPM_IGNORED_BUILDS`
 - **Fix**:
   ```bash
-  just sync-rules
+  ./scripts/setup_asset_generator.sh   # from dotfiles root (sync + pnpm install)
+  # or manually:
   cd ~/.cursor/skills/asset-generator
   pnpm install
-  pnpm approve-builds esbuild sharp   # once, if needed
+  pnpm approve-builds esbuild sharp   # once, if needed (pnpm-workspace allowBuilds usually enough)
   chmod +x ./run.sh
   ./run.sh --help
   ```

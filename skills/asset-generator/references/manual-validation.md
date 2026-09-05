@@ -5,11 +5,10 @@ Automated gates catch empty crops and bad seams. **Human review** is still requi
 ## Prerequisites
 
 ```bash
-just sync-rules
+./scripts/setup_asset_generator.sh   # from dotfiles root (sync + pnpm install)
 # Auth via FAL_KEY, genmedia setup, or GENMEDIA_BIN="bws run -- genmedia"
 export FAL_KEY="<your-key>"   # optional if genmedia already configured
 cd ~/.cursor/skills/asset-generator
-chmod +x ./run.sh   # once, if needed
 genmedia version --json
 ```
 

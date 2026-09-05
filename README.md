@@ -29,7 +29,7 @@ Bitwarden Send URL は `--bws-send-url`、環境変数 `BWS_SEND_URL`、また�
 
 WSL 上では続けて [docs/agent-browser-win.md](docs/agent-browser-win.md) のブリッジ（Windows Chrome 専用プロファイル + agent-browser）もセットアップする。単体実行は `./scripts/setup_agent_browser_win.sh`。
 
-手動: `sudo ansible-playbook playbook.yml`（`-e` も同様に渡せる。bws トークン設定は `./scripts/setup_bws.sh`、Windows Chrome ブリッジは `./scripts/setup_agent_browser_win.sh` で別途）
+手動: `sudo ansible-playbook playbook.yml`（`-e` も同様に渡せる。bws トークン設定は `./scripts/setup_bws.sh`、Windows Chrome ブリッジは `./scripts/setup_agent_browser_win.sh`、asset-generator skill の再同期は `./scripts/setup_asset_generator.sh` で別途）
 
 ## インストール内容
 
@@ -39,7 +39,7 @@ WSL 上では続けて [docs/agent-browser-win.md](docs/agent-browser-win.md) �
 | ファイル操作 | eza, zoxide, bat, ripgrep, fd-find, fzf, btop |
 | Git | lazygit, gh, git-delta, hunk (hunkdiff) |
 | ランタイム | fnm + Node.js LTS, bun, pnpm, uv, Modal CLI |
-| AI / デプロイ | genmedia, Cursor CLI (`agent`), agent-browser（Linux）+ agent-browser-win（WSL→Windows Chrome） |
+| AI / デプロイ | genmedia, Cursor CLI (`agent`), agent-browser（Linux）+ agent-browser-win（WSL→Windows Chrome）, asset-generator skill（`~/.cursor/skills`） |
 | インフラ | flyctl, bws |
 | メディア | HyperFrames, ffmpeg, libvips, Noto CJK フォント |
 

@@ -12,24 +12,23 @@ allowed-tools:
 
 # Asset Generator — Agent Visual Director & Grill Playbook
 
-Repo SSOT: `skills/asset-generator/`. Deploy: `just sync-rules` → `~/.cursor/skills/asset-generator/` (**runs `pnpm install` automatically**).
+Repo SSOT: `skills/asset-generator/`. Deploy: `./setup.sh` / `./scripts/setup_asset_generator.sh` → `~/.cursor/skills/asset-generator/` (**runs `pnpm install` automatically**; `~/.agents/skills/asset-generator` is a symlink).
 
 **fal.ai access is via [genmedia CLI](https://github.com/fal-ai-community/genmedia-cli) only** (`genmedia upload` / `genmedia run … --download --json`). Do not call the fal HTTP API or `@fal-ai/client` from this skill.
 
 ## Ubuntu Setup
 
 ```bash
-# 1) genmedia CLI
-curl https://genmedia.sh/install -fsS | bash
-export FAL_KEY="your_key"   # or: genmedia setup --non-interactive --api-key "$FAL_KEY"
-# Optional Bitwarden wrap: export GENMEDIA_BIN="bws run -- genmedia"
+# Full env (includes this skill): ./setup.sh
+# Or skill only (needs node + pnpm already):
+./scripts/setup_asset_generator.sh
 
-# 2) skill
-just sync-rules   # sync + pnpm install
+# genmedia + auth (if not via playbook / bws)
+curl https://genmedia.sh/install -fsS | bash
+export FAL_KEY="your_key"   # or Bitwarden: alias genmedia='bws run -- genmedia'
+
 skill="$HOME/.cursor/skills/asset-generator"
-cd "$skill"
-chmod +x ./run.sh   # once after sync, if needed
-./run.sh --help     # never use npx tsx
+"$skill/run.sh" --help     # never use npx tsx
 ```
 
 Requirements: Node.js 20+, `pnpm`, `genmedia` on PATH, and fal auth (`FAL_KEY` **or** `genmedia setup` **or** `GENMEDIA_BIN` wrapper).
