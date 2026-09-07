@@ -1,0 +1,3 @@
+#!/bin/bash
+# Open URL in Windows default browser via WSL interop
+exec cmd.exe /c start "" "$@"

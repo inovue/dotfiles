@@ -1,0 +1,27 @@
+---
+# Expects `installer` dict: name, pin, cmd; optional become, environment
+- name: "Read pin stamp ({{ installer.name }})"
+  slurp:
+    src: "{{ home }}/.config/inovue/tool-pins/{{ installer.name }}"
+  register: pin_stamp
+  failed_when: false
+  changed_when: false
+
+- name: "Install or refresh {{ installer.name }}"
+  shell: "{{ installer.cmd }}"
+  args:
+    executable: /bin/bash
+  become: "{{ installer.become | default(false) }}"
+  environment: "{{ installer.environment | default({}) }}"
+  when: >
+    pin_stamp.content is not defined
+    or (pin_stamp.content | b64decode | trim) != installer.pin
+
+- name: "Write pin stamp ({{ installer.name }})"
+  copy:
+    dest: "{{ home }}/.config/inovue/tool-pins/{{ installer.name }}"
+    content: "{{ installer.pin }}\n"
+    mode: "0644"
+  when: >
+    pin_stamp.content is not defined
+    or (pin_stamp.content | b64decode | trim) != installer.pin

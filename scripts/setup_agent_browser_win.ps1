@@ -36,7 +36,17 @@ if (-not $npm) {
 }
 
 Write-Output ("npm: " + $npm.Source)
-npm install -g agent-browser
+# Some npm builds gate postinstall via allow-scripts; enable when the flag exists.
+$installArgs = @("install", "-g", "agent-browser")
+$installHelp = (& npm install --help 2>&1 | Out-String)
+if ($installHelp -match "allow-scripts") {
+  $installArgs += "--allow-scripts=agent-browser"
+  Write-Output "npm supports --allow-scripts; enabling for agent-browser"
+}
+& npm @installArgs
+if ($LASTEXITCODE -ne 0) {
+  throw "npm install -g agent-browser failed"
+}
 $ab = Get-Command agent-browser -ErrorAction SilentlyContinue
 if (-not $ab) {
   throw "agent-browser not on PATH after npm install -g"

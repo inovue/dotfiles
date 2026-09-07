@@ -7,6 +7,7 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 SKILL_SRC="$ROOT_DIR/skills/asset-generator"
 CURSOR_DEST="${HOME}/.cursor/skills/asset-generator"
 AGENTS_DEST="${HOME}/.agents/skills/asset-generator"
+STAMP_FILE="${CURSOR_DEST}/.dotfiles-install-stamp"
 
 log() { echo "==> $*"; }
 warn() { echo "warning: $*" >&2; }
@@ -41,21 +42,46 @@ fi
 
 mkdir -p "${HOME}/.cursor/skills" "${HOME}/.agents/skills"
 
+src_lock_hash() {
+  if [[ -f "${SKILL_SRC}/pnpm-lock.yaml" ]]; then
+    sha256sum "${SKILL_SRC}/pnpm-lock.yaml" | awk '{print $1}'
+  else
+    echo "no-lock"
+  fi
+}
+
+LOCK_HASH="$(src_lock_hash)"
+NEED_PNPM=1
+if [[ -d "${CURSOR_DEST}/node_modules" && -f "$STAMP_FILE" ]]; then
+  if [[ "$(cat "$STAMP_FILE")" == "$LOCK_HASH" ]]; then
+    NEED_PNPM=0
+  fi
+fi
+
 log "Syncing skill -> $CURSOR_DEST"
 mkdir -p "$CURSOR_DEST"
 rsync -a --delete \
   --exclude node_modules \
   --exclude .pnpm-store \
+  --exclude .dotfiles-install-stamp \
   --exclude 'src/assets/images/generated' \
   --exclude 'tests/fixtures/out' \
   "${SKILL_SRC}/" "${CURSOR_DEST}/"
 chmod +x "${CURSOR_DEST}/run.sh"
 
-log "pnpm install in $CURSOR_DEST"
-(
-  cd "$CURSOR_DEST"
-  pnpm install --frozen-lockfile
-)
+if [[ "$NEED_PNPM" -eq 1 ]]; then
+  log "pnpm install in $CURSOR_DEST"
+  (
+    cd "$CURSOR_DEST"
+    # システムに libvips があると sharp がソースビルドに落ちることがある。
+    # プリビルトバイナリを使う（https://sharp.pixelplumbing.com/install/）。
+    export SHARP_IGNORE_GLOBAL_LIBVIPS=1
+    pnpm install --frozen-lockfile
+  )
+  printf '%s\n' "$LOCK_HASH" >"$STAMP_FILE"
+else
+  log "pnpm install skipped (lockfile stamp unchanged)"
+fi
 
 # Single install; agents skill points at the same tree.
 rm -rf "$AGENTS_DEST"

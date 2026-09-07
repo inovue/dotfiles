@@ -24,16 +24,6 @@ ensure_ansible() {
   sudo apt-get install -y ansible
 }
 
-ensure_community_general() {
-  if sudo ansible-galaxy collection list community.general 2>/dev/null | grep -q 'community.general'; then
-    log "community.general collection already installed"
-    return
-  fi
-
-  log "Installing community.general Ansible collection..."
-  sudo ansible-galaxy collection install community.general
-}
-
 run_bws_setup() {
   local bws_env="${HOME}/.config/inovue/bws.env"
 
@@ -74,7 +64,6 @@ run_agent_browser_win_setup() {
 }
 
 ensure_ansible
-ensure_community_general
 
 ANSIBLE_ARGS=()
 BWS_SEND_URL_ARG=""
@@ -99,8 +88,14 @@ while [ $# -gt 0 ]; do
   esac
 done
 
+# Ensure sudo works for playbook `become` (NOPASSWD or interactive cache).
+# Prefer `sudo true` over `sudo -v` — the latter can require a TTY even with NOPASSWD.
+if ! sudo -n true 2>/dev/null; then
+  sudo true
+fi
+
 log "Running setup playbook..."
-sudo ansible-playbook "$ROOT_DIR/playbook.yml" "${ANSIBLE_ARGS[@]}"
+ansible-playbook -i "$ROOT_DIR/inventory" "$ROOT_DIR/playbook.yml" "${ANSIBLE_ARGS[@]}"
 
 BWS_SEND_URL="${BWS_SEND_URL:-$BWS_SEND_URL_ARG}"
 export BWS_SEND_URL

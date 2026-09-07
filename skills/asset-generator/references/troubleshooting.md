@@ -14,17 +14,18 @@
   genmedia version --json
   ```
 
-### 2. `tsx not installed` / `ERR_PNPM_IGNORED_BUILDS`
+### 2. `tsx not installed` / `ERR_PNPM_IGNORED_BUILDS` / sharp build-from-source
 - **Fix**:
   ```bash
   ./scripts/setup_asset_generator.sh   # from dotfiles root (sync + pnpm install)
   # or manually:
   cd ~/.cursor/skills/asset-generator
-  pnpm install
+  SHARP_IGNORE_GLOBAL_LIBVIPS=1 pnpm install
   pnpm approve-builds esbuild sharp   # once, if needed (pnpm-workspace allowBuilds usually enough)
   chmod +x ./run.sh
   ./run.sh --help
   ```
+- **Note**: If system `libvips` is present, sharp may try to compile from source. `setup_asset_generator.sh` sets `SHARP_IGNORE_GLOBAL_LIBVIPS=1` so the prebuilt `@img/sharp-*` binary is used. The playbook does not install libvips.
 
 ### 3. `[ITEMS ERROR] Cell count mismatch` or `Grid generation blocked`
 - **Cause**: Missing `--confirm`, wrong cell count, or bad `--items` path.

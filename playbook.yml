@@ -1,31 +1,64 @@
 ---
-- name: ターミナル環境構築 (WSL Ubuntu 2026 Ultra Modern CLI + HyperFrames Ready)
+- name: WSL Ubuntu CLI environment
   hosts: localhost
-  become: yes
+  connection: local
+  become: false
+  gather_facts: true
   vars:
-    real_user: "{{ lookup('env', 'SUDO_USER') | default(lookup('env', 'USER'), true) }}"
-    home: "{{ '/root' if real_user == 'root' else '/home/' + real_user }}"
-    # Git グローバル設定（上書き例: -e git_user_name="Your Name" -e git_user_email="you@example.com"）
-    git_user_name: "{{ real_user }}"
-    git_user_email: "{{ real_user }}@users.noreply.github.com"
+    home: "{{ ansible_facts['env']['HOME'] }}"
+    git_user_name: "{{ ansible_facts['user_id'] }}"
+    git_user_email: "{{ ansible_facts['user_id'] }}@users.noreply.github.com"
+    # Bump these to upgrade pinned GitHub release installs
+    sheldon_version: "0.8.5"
+    lazygit_version: "0.65.0"
+    bws_version: "2.1.0"
+    helix_version: "25.07.1"
+    helix_deb_revision: "25.7.1-1"
+    # Bump these stamps to re-run official install scripts (fetch upstream latest)
+    starship_pin: "1.26.0"
+    zoxide_pin: "0.10.0"
+    fnm_pin: "1.39.0"
+    uv_pin: "0.12.9"
+    flyctl_pin: "0.4.97"
+    herdr_pin: "0.8.2"
+    pnpm_pin: "11.25.0"
+    genmedia_pin: "0.7.0"
+    cursor_agent_pin: "2026.09.02-c22c1a3"
 
   environment:
     DEBIAN_FRONTEND: noninteractive
 
+  pre_tasks:
+    - name: Set architecture facts for release installs
+      set_fact:
+        sheldon_arch: "{{ 'x86_64-unknown-linux-musl' if ansible_facts['architecture'] == 'x86_64' else 'aarch64-unknown-linux-musl' }}"
+        lazygit_arch: "{{ 'linux_x86_64' if ansible_facts['architecture'] == 'x86_64' else 'linux_arm64' }}"
+        bws_arch: "{{ 'x86_64' if ansible_facts['architecture'] == 'x86_64' else 'aarch64' }}"
+      tags: always
+
   tasks:
     # ========================================
-    # 1. APT キャッシュ更新 & 基本依存関係のインストール
+    # 1. APT
     # ========================================
     - name: Update apt cache
+      become: true
       apt:
-        update_cache: yes
+        update_cache: true
         cache_valid_time: 3600
-      register: apt_update_result
-      until: apt_update_result is succeeded
-      retries: 3
-      delay: 5
+      tags: [apt]
 
-    - name: Install base, media, Chromium headless deps, Japanese fonts & modern packages
+    - name: Remove leftover third-party eza apt source
+      become: true
+      file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - /etc/apt/sources.list.d/gierens.list
+        - /etc/apt/keyrings/gierens.gpg
+      tags: [apt]
+
+    - name: Install base packages
+      become: true
       apt:
         name:
           - zsh
@@ -38,23 +71,21 @@
           - gpg
           - jq
           - ffmpeg
-          - libvips
-          - libvips-tools
-          - libvips-dev
           - bat
           - ripgrep
           - fd-find
           - fzf
           - btop
           - git-delta
-          - libatomic1  # pnpm スタンドアロンバイナリの実行時依存
-          # --- WSL2/WSLg: Helix 等のクリップボード連携（wl-copy / wl-paste） ---
+          - eza
+          - libatomic1  # pnpm standalone binary
+          # --- WSL2/WSLg: Helix clipboard (wl-copy / wl-paste) ---
           - wl-clipboard
-          # --- フォント（文字化け防止 / HyperFrames レンダリング用） ---
+          # --- Fonts (mojibake / HyperFrames) ---
           - fonts-liberation
           - fonts-noto-cjk
           - fonts-noto-color-emoji
-          # --- Headless Chromium / HyperFrames 用システムライブラリ (Ubuntu 24.04 t64) ---
+          # --- Headless Chromium / HyperFrames system libs (Ubuntu 24.04 t64) ---
           - xdg-utils
           - libasound2t64
           - libatk-bridge2.0-0t64
@@ -71,7 +102,7 @@
           - libgtk-3-0t64
           - libnspr4
           - libnss3
-          - libnss3-tools  # agent-browser install --with-deps / CA 用 certutil
+          - libnss3-tools  # agent-browser / CA certutil
           - libpango-1.0-0
           - libpangocairo-1.0-0
           - libvulkan1
@@ -89,682 +120,502 @@
           - libxtst6
         state: present
         dpkg_options: 'force-confdef,force-confold'
-      register: apt_install_result
-      until: apt_install_result is succeeded
-      retries: 3
-      delay: 10
+      tags: [apt]
+
+    - name: Align eza to Ubuntu archive package
+      become: true
+      shell: |
+        set -euo pipefail
+        target=$(apt-cache madison eza | awk '/archive\.ubuntu\.com/ {print $3; exit}')
+        if [ -z "${target:-}" ]; then
+          echo "no Ubuntu archive eza candidate; skip"
+          exit 0
+        fi
+        installed=$(dpkg-query -W -f='${Version}' eza 2>/dev/null || true)
+        if [ "$installed" != "$target" ]; then
+          apt-get install -y --allow-downgrades "eza=${target}"
+          echo CHANGED
+        fi
+      args:
+        executable: /bin/bash
+      register: eza_align
+      changed_when: "'CHANGED' in eza_align.stdout"
+      tags: [apt]
 
     # ========================================
-    # 2. zsh をデフォルトシェルに変更
+    # 2. Default shell → zsh
     # ========================================
     - name: Change default shell to zsh
+      become: true
       user:
-        name: "{{ real_user }}"
+        name: "{{ ansible_facts['user_id'] }}"
         shell: /usr/bin/zsh
+      tags: [shell]
 
     # ========================================
-    # 3. Starship Prompt
+    # 3. Starship / zoxide (official installers; pin stamp)
     # ========================================
-    - name: Install Starship
-      shell: curl -sS https://starship.rs/install.sh | sh -s -- -y
-      args:
-        creates: /usr/local/bin/starship
-
-    - name: Create ~/.config directory
+    - name: Ensure config and tool-pins directories
       file:
-        path: "{{ home }}/.config"
+        path: "{{ item }}"
         state: directory
-        owner: "{{ real_user }}"
-        group: "{{ real_user }}"
         mode: "0755"
+      loop:
+        - "{{ home }}/.config"
+        - "{{ home }}/.config/inovue"
+        - "{{ home }}/.config/inovue/tool-pins"
+        - "{{ home }}/.local/bin"
+      tags: [shell]
 
-    - name: Deploy default starship.toml
+    - name: Install or refresh shell curl installers
+      include_tasks:
+        file: tasks/curl_installer.yml
+        apply:
+          tags: [shell]
+      loop:
+        - name: starship
+          pin: "{{ starship_pin }}"
+          become: true
+          cmd: curl -sS https://starship.rs/install.sh | sh -s -- -y
+        - name: zoxide
+          pin: "{{ zoxide_pin }}"
+          cmd: curl -sS https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh | bash
+      loop_control:
+        loop_var: installer
+      tags: [shell]
+
+    - name: Deploy starship.toml
       copy:
+        src: starship.toml
         dest: "{{ home }}/.config/starship.toml"
-        owner: "{{ real_user }}"
-        group: "{{ real_user }}"
         mode: "0644"
-        content: |
-          # Starship Configuration
-          add_newline = false
-          [line_break]
-          disabled = true
+      tags: [shell]
 
     # ========================================
-    # 4. Sheldon (GitHub API 経由で最新リリースを取得)
+    # 4. Sheldon
     # ========================================
-    - name: Ensure ~/.local/bin exists
-      file:
-        path: "{{ home }}/.local/bin"
-        state: directory
-        owner: "{{ real_user }}"
-        group: "{{ real_user }}"
-        mode: "0755"
-
-    - name: Get Architecture for Sheldon
-      command: uname -m
-      register: uname_m
+    - name: Check installed Sheldon version
+      command: "{{ home }}/.local/bin/sheldon --version"
+      register: sheldon_installed
+      failed_when: false
       changed_when: false
-
-    - name: Set Sheldon Arch Fact
-      set_fact:
-        sheldon_arch: "{{ 'x86_64-unknown-linux-musl' if uname_m.stdout == 'x86_64' else 'aarch64-unknown-linux-musl' }}"
-
-    - name: Get latest Sheldon release tag
-      uri:
-        url: https://api.github.com/repos/rossmacarthur/sheldon/releases/latest
-        return_content: yes
-        headers:
-          Accept: application/vnd.github+json
-      register: sheldon_latest_release
-      retries: 3
-      delay: 5
-      until: sheldon_latest_release is succeeded
-
-    - name: Set Sheldon Version Fact
-      set_fact:
-        sheldon_version: "{{ sheldon_latest_release.json.tag_name | regex_replace('^v', '') }}"
+      tags: [shell]
 
     - name: Download Sheldon release archive
       get_url:
         url: "https://github.com/rossmacarthur/sheldon/releases/download/{{ sheldon_version }}/sheldon-{{ sheldon_version }}-{{ sheldon_arch }}.tar.gz"
-        dest: "/tmp/sheldon.tar.gz"
+        dest: "/tmp/sheldon-{{ sheldon_version }}.tar.gz"
         mode: "0644"
+      when: sheldon_installed.rc != 0 or sheldon_version not in (sheldon_installed.stdout | default(''))
+      tags: [shell]
 
     - name: Install Sheldon binary
       unarchive:
-        src: "/tmp/sheldon.tar.gz"
+        src: "/tmp/sheldon-{{ sheldon_version }}.tar.gz"
         dest: "{{ home }}/.local/bin"
-        remote_src: yes
-        creates: "{{ home }}/.local/bin/sheldon"
-        owner: "{{ real_user }}"
-        group: "{{ real_user }}"
+        remote_src: true
         mode: "0755"
+      when: sheldon_installed.rc != 0 or sheldon_version not in (sheldon_installed.stdout | default(''))
+      tags: [shell]
 
     - name: Ensure ~/.config/sheldon directory exists
       file:
         path: "{{ home }}/.config/sheldon"
         state: directory
-        owner: "{{ real_user }}"
-        group: "{{ real_user }}"
         mode: "0755"
+      tags: [shell]
 
     - name: Deploy Sheldon plugins.toml
       copy:
+        src: sheldon/plugins.toml
         dest: "{{ home }}/.config/sheldon/plugins.toml"
-        owner: "{{ real_user }}"
-        group: "{{ real_user }}"
         mode: "0644"
-        content: |
-          shell = "zsh"
-
-          [plugins.zsh-completions]
-          github = "zsh-users/zsh-completions"
-
-          [plugins.zsh-autosuggestions]
-          github = "zsh-users/zsh-autosuggestions"
-
-          [plugins.zsh-syntax-highlighting]
-          github = "zsh-users/zsh-syntax-highlighting"
+      tags: [shell]
 
     # ========================================
-    # 5. eza (ls 代替)
+    # 6. lazygit
     # ========================================
-    - name: Create keyrings directory
+    - name: Check installed lazygit version
+      command: /usr/local/bin/lazygit --version
+      register: lazygit_installed
+      failed_when: false
+      changed_when: false
+      tags: [tools]
+
+    - name: Download lazygit archive
+      become: true
+      get_url:
+        url: "https://github.com/jesseduffield/lazygit/releases/download/v{{ lazygit_version }}/lazygit_{{ lazygit_version }}_{{ lazygit_arch }}.tar.gz"
+        dest: "/tmp/lazygit-{{ lazygit_version }}.tar.gz"
+        mode: "0644"
+      when: lazygit_installed.rc != 0 or lazygit_version not in (lazygit_installed.stdout | default(''))
+      tags: [tools]
+
+    - name: Install lazygit
+      become: true
+      unarchive:
+        src: "/tmp/lazygit-{{ lazygit_version }}.tar.gz"
+        dest: /usr/local/bin
+        remote_src: true
+        mode: "0755"
+      when: lazygit_installed.rc != 0 or lazygit_version not in (lazygit_installed.stdout | default(''))
+      tags: [tools]
+
+    # ========================================
+    # 7. GitHub CLI (gh)
+    # ========================================
+    - name: Ensure apt keyrings directory exists
+      become: true
       file:
         path: /etc/apt/keyrings
         state: directory
         mode: "0755"
+      tags: [tools]
 
-    - name: Add eza GPG key
-      shell: |
-        wget -qO- https://raw.githubusercontent.com/eza-community/eza/main/deb.asc \
-          | gpg --dearmor -o /etc/apt/keyrings/gierens.gpg
-      args:
-        creates: /etc/apt/keyrings/gierens.gpg
-
-    - name: Add eza repository
-      apt_repository:
-        repo: "deb [signed-by=/etc/apt/keyrings/gierens.gpg] https://deb.gierens.de stable main"
-        state: present
-        filename: gierens
-
-    - name: Install eza
-      apt:
-        name: eza
-        state: present
-        update_cache: yes
-        dpkg_options: 'force-confdef,force-confold'
-
-    # ========================================
-    # 6. zoxide (cd 代替)
-    # ========================================
-    - name: Install zoxide
-      become: yes
-      become_user: "{{ real_user }}"
-      shell: curl -sS https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh | bash
-      args:
-        creates: "{{ home }}/.local/bin/zoxide"
-
-    # ========================================
-    # 7. lazygit (GitHub API 経由で最新リリースを取得)
-    # ========================================
-    - name: Set Architecture Fact for lazygit
-      set_fact:
-        lazygit_arch: "{{ 'linux_x86_64' if uname_m.stdout == 'x86_64' else 'linux_arm64' }}"
-
-    - name: Get latest lazygit release tag
-      uri:
-        url: https://api.github.com/repos/jesseduffield/lazygit/releases/latest
-        return_content: yes
-        headers:
-          Accept: application/vnd.github+json
-      register: lazygit_latest_release
-      retries: 3
-      delay: 5
-      until: lazygit_latest_release is succeeded
-
-    - name: Set lazygit Version Fact
-      set_fact:
-        lazygit_version: "{{ lazygit_latest_release.json.tag_name | regex_replace('^v', '') }}"
-
-    - name: Download lazygit archive directly from release
-      get_url:
-        url: "https://github.com/jesseduffield/lazygit/releases/download/v{{ lazygit_version }}/lazygit_{{ lazygit_version }}_{{ lazygit_arch }}.tar.gz"
-        dest: "/tmp/lazygit.tar.gz"
-        mode: "0644"
-
-    - name: Install lazygit
-      unarchive:
-        src: "/tmp/lazygit.tar.gz"
-        dest: /usr/local/bin
-        remote_src: yes
-        creates: /usr/local/bin/lazygit
-        mode: "0755"
-
-    # ========================================
-    # 8. GitHub CLI (gh)
-    # ========================================
     - name: Add GitHub CLI GPG key
+      become: true
       shell: |
         curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg \
           | gpg --dearmor -o /etc/apt/keyrings/githubcli-archive-keyring.gpg
       args:
         creates: /etc/apt/keyrings/githubcli-archive-keyring.gpg
+      tags: [tools]
 
     - name: Get dpkg architecture for GitHub CLI repo
       command: dpkg --print-architecture
       register: dpkg_arch
       changed_when: false
+      tags: [tools]
 
     - name: Add GitHub CLI repository
+      become: true
       apt_repository:
         repo: "deb [arch={{ dpkg_arch.stdout }} signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main"
         state: present
         filename: github-cli
+      tags: [tools]
 
     - name: Install GitHub CLI
+      become: true
       apt:
         name: gh
         state: present
-        update_cache: yes
+        update_cache: true
         dpkg_options: 'force-confdef,force-confold'
+      tags: [tools]
 
     # ========================================
-    # 8b. Git グローバル identity
+    # 8. Git global identity
     # ========================================
+    - name: Read git global user.name
+      command: git config --global --get user.name
+      register: current_git_name
+      failed_when: false
+      changed_when: false
+      tags: [shell]
+
     - name: Configure git global user.name
-      become: yes
-      become_user: "{{ real_user }}"
-      community.general.git_config:
-        name: user.name
-        scope: global
-        value: "{{ git_user_name }}"
+      command: git config --global user.name "{{ git_user_name }}"
+      when: (current_git_name.stdout | default('')) != git_user_name
+      tags: [shell]
+
+    - name: Read git global user.email
+      command: git config --global --get user.email
+      register: current_git_email
+      failed_when: false
+      changed_when: false
+      tags: [shell]
 
     - name: Configure git global user.email
-      become: yes
-      become_user: "{{ real_user }}"
-      community.general.git_config:
-        name: user.email
-        scope: global
-        value: "{{ git_user_email }}"
+      command: git config --global user.email "{{ git_user_email }}"
+      when: (current_git_email.stdout | default('')) != git_user_email
+      tags: [shell]
 
     # ========================================
-    # 9. fnm (Fast Node Manager) & Node.js LTS
+    # 9. fnm + Node.js LTS + npm globals
     # ========================================
-    - name: Install fnm
-      become: yes
-      become_user: "{{ real_user }}"
-      shell: curl -fsSL https://fnm.vercel.app/install | bash -s -- --skip-shell
-      args:
-        creates: "{{ home }}/.local/share/fnm/fnm"
+    - name: Install or refresh fnm
+      include_tasks:
+        file: tasks/curl_installer.yml
+        apply:
+          tags: [node]
+      loop:
+        - name: fnm
+          pin: "{{ fnm_pin }}"
+          cmd: curl -fsSL https://fnm.vercel.app/install | bash -s -- --skip-shell
+      loop_control:
+        loop_var: installer
+      tags: [node]
 
     - name: Install Node.js LTS via fnm
-      become: yes
-      become_user: "{{ real_user }}"
       shell: |
         export PATH="{{ home }}/.local/share/fnm:$PATH"
         eval "$({{ home }}/.local/share/fnm/fnm env)"
         {{ home }}/.local/share/fnm/fnm install --lts
       args:
         creates: "{{ home }}/.local/share/fnm/aliases/default"
-
-    - name: Read npm allow-scripts setting
-      become: yes
-      become_user: "{{ real_user }}"
-      shell: |
-        export PATH="{{ home }}/.local/share/fnm:$PATH"
-        eval "$({{ home }}/.local/share/fnm/fnm env)"
-        npm config get allow-scripts --location=user
-      register: npm_allow_scripts
-      changed_when: false
-      failed_when: false
-
-    - name: Allow bun postinstall for npm global installs
-      become: yes
-      become_user: "{{ real_user }}"
-      shell: |
-        export PATH="{{ home }}/.local/share/fnm:$PATH"
-        eval "$({{ home }}/.local/share/fnm/fnm env)"
-        npm config set allow-scripts=bun --location=user
-      when: npm_allow_scripts.stdout | trim != 'bun'
+      tags: [node]
 
     - name: Install hunkdiff via npm
-      become: yes
-      become_user: "{{ real_user }}"
       shell: |
         export PATH="{{ home }}/.local/share/fnm:$PATH"
         eval "$({{ home }}/.local/share/fnm/fnm env)"
-        npm install -g hunkdiff --allow-scripts=bun
+        npm install -g hunkdiff
       args:
         creates: "{{ home }}/.local/share/fnm/aliases/default/bin/hunk"
+      tags: [node]
 
     # ========================================
     # 9b. agent-browser (Vercel Labs) + Cursor skill
-    # https://github.com/vercel-labs/agent-browser
-    # 公式推奨は npm -g（ネイティブバイナリ + postinstall で bin 差し替え）。
-    # pnpm add -g も upgrade 対応だが、この playbook では npm に揃える。
-    # Linux のシステム依存はセクション 1 の Chromium/apt 群 + libnss3-tools で賄う
-    #（become_user では apt できないため install --with-deps は使わない）。
-    # Skill: https://skills.sh/vercel-labs/agent-browser
+    # Linux system deps: section 1 Chromium apt libs + libnss3-tools
+    # (become_user/apt split avoided; install --with-deps not used).
     # ========================================
     - name: Install agent-browser via npm
-      become: yes
-      become_user: "{{ real_user }}"
       shell: |
         export PATH="{{ home }}/.local/share/fnm:$PATH"
         eval "$({{ home }}/.local/share/fnm/fnm env)"
         npm install -g agent-browser
       args:
         creates: "{{ home }}/.local/share/fnm/aliases/default/bin/agent-browser"
+      tags: [node]
 
     - name: Install agent-browser Chrome for Testing
-      become: yes
-      become_user: "{{ real_user }}"
       shell: |
         export PATH="{{ home }}/.local/share/fnm:$PATH"
         eval "$({{ home }}/.local/share/fnm/fnm env)"
         agent-browser install
       args:
         creates: "{{ home }}/.agent-browser/browsers"
+      tags: [node]
 
     - name: Install agent-browser skill globally for Cursor
-      become: yes
-      become_user: "{{ real_user }}"
       shell: |
         export PATH="{{ home }}/.local/share/fnm:$PATH"
         eval "$({{ home }}/.local/share/fnm/fnm env)"
         npx -y skills add vercel-labs/agent-browser -g -a cursor -s agent-browser -y
       args:
-        creates: "{{ home }}/.cursor/skills/agent-browser/SKILL.md"
+        # skills CLI canonical path is ~/.agents/skills (Cursor discovers it from there)
+        creates: "{{ home }}/.agents/skills/agent-browser/SKILL.md"
+      tags: [node]
 
     # ========================================
-    # 10. HyperFrames (Chrome Headless Shell)
+    # 10. HyperFrames (Chrome Headless Shell; separate from agent-browser)
     # ========================================
     - name: Ensure HyperFrames Chrome Headless Shell
-      become: yes
-      become_user: "{{ real_user }}"
       shell: |
         export PATH="{{ home }}/.local/share/fnm:$PATH"
         eval "$({{ home }}/.local/share/fnm/fnm env)"
         npx hyperframes browser ensure
       args:
         creates: "{{ home }}/.cache/hyperframes/chrome"
+      tags: [node]
 
     # ========================================
-    # 10b. Helix editor (Ubuntu PPA) + WSLg clipboard
-    # https://docs.helix-editor.com/package-managers.html#ubuntu-ppa
-    # wl-clipboard はセクション 1 の apt で導入（WSLg Wayland 連携・自動検出）
-    # config: 公式 example + 定番おすすめ（Helix 24.07 互換）
-    # https://docs.helix-editor.com/configuration.html
+    # 10b. Helix editor (official GitHub release) + WSLg clipboard
     # ========================================
-    - name: Add Helix PPA
-      apt_repository:
-        repo: ppa:maveonair/helix-editor
-        state: present
-
-    - name: Install Helix
+    - name: Install Helix on x86_64 (official GitHub .deb)
+      become: true
       apt:
-        name: helix
+        deb: "https://github.com/helix-editor/helix/releases/download/{{ helix_version }}/helix_{{ helix_deb_revision }}_amd64.deb"
         state: present
-        update_cache: yes
-        dpkg_options: 'force-confdef,force-confold'
+      when: ansible_facts['architecture'] in ["x86_64", "amd64"]
+      tags: [tools]
+
+    - name: Ensure /opt/helix exists on ARM64
+      become: true
+      file:
+        path: /opt/helix
+        state: directory
+        mode: "0755"
+      when: ansible_facts['architecture'] == "aarch64"
+      tags: [tools]
+
+    - name: Check installed Helix version on ARM64
+      command: /usr/local/bin/hx --version
+      register: helix_arm_installed
+      failed_when: false
+      changed_when: false
+      when: ansible_facts['architecture'] == "aarch64"
+      tags: [tools]
+
+    - name: Install Helix on ARM64 (official tarball)
+      become: true
+      unarchive:
+        src: "https://github.com/helix-editor/helix/releases/download/{{ helix_version }}/helix-{{ helix_version }}-aarch64-linux.tar.xz"
+        dest: /opt/helix
+        remote_src: true
+        extra_opts: [--strip-components=1]
+      when: >
+        ansible_facts['architecture'] == "aarch64"
+        and (helix_arm_installed.rc != 0
+             or helix_version not in (helix_arm_installed.stdout | default('')))
+      tags: [tools]
+
+    - name: Symlink hx into PATH on ARM64
+      become: true
+      file:
+        src: /opt/helix/hx
+        dest: /usr/local/bin/hx
+        state: link
+      when: ansible_facts['architecture'] == "aarch64"
+      tags: [tools]
 
     - name: Ensure ~/.config/helix directory exists
       file:
         path: "{{ home }}/.config/helix"
         state: directory
-        owner: "{{ real_user }}"
-        group: "{{ real_user }}"
         mode: "0755"
+      tags: [tools]
 
     - name: Deploy Helix config.toml
       copy:
+        src: helix/config.toml
         dest: "{{ home }}/.config/helix/config.toml"
-        owner: "{{ real_user }}"
-        group: "{{ real_user }}"
         mode: "0644"
-        content: |
-          # Helix config (24.07 / PPA)
-          # 公式 example: https://docs.helix-editor.com/configuration.html
-          # 定番: relative 行番号 / cursorline / color-modes / indent-guides / soft-wrap
-          # クリップボードは wl-clipboard を自動検出（clipboard-provider は 25.x 以降）
-          theme = "onedark"
-
-          [editor]
-          line-number = "relative"
-          cursorline = true
-          color-modes = true
-          bufferline = "multiple"
-          true-color = true
-          rulers = [80]
-
-          [editor.cursor-shape]
-          insert = "bar"
-          normal = "block"
-          select = "underline"
-
-          [editor.file-picker]
-          hidden = false
-
-          [editor.lsp]
-          display-inlay-hints = true
-
-          [editor.indent-guides]
-          render = true
-
-          [editor.soft-wrap]
-          enable = true
+      tags: [tools]
 
     # ========================================
-    # 11. uv (Python Package / Project Manager)
+    # 11. uv + Modal CLI (Python 3.12)
     # ========================================
-    - name: Install uv
-      become: yes
-      become_user: "{{ real_user }}"
-      shell: curl -LsSf https://astral.sh/uv/install.sh | sh
-      args:
-        creates: "{{ home }}/.local/bin/uv"
+    - name: Install or refresh tool curl installers
+      include_tasks:
+        file: tasks/curl_installer.yml
+        apply:
+          tags: [tools]
+      loop:
+        - name: uv
+          pin: "{{ uv_pin }}"
+          cmd: curl -LsSf https://astral.sh/uv/install.sh | sh
+        - name: flyctl
+          pin: "{{ flyctl_pin }}"
+          cmd: curl -L https://fly.io/install.sh | sh
+        - name: cursor-agent
+          pin: "{{ cursor_agent_pin }}"
+          cmd: curl -fsSL https://cursor.com/install | bash
+        - name: genmedia
+          pin: "{{ genmedia_pin }}"
+          cmd: |
+            export PATH="{{ home }}/.local/bin:$PATH"
+            curl -fsSL https://genmedia.sh/install | bash
+        - name: herdr
+          pin: "{{ herdr_pin }}"
+          cmd: curl -fsSL https://herdr.dev/install.sh | sh
+      loop_control:
+        loop_var: installer
+      tags: [tools]
 
-    # Modal はシステム Python 3.14 / git ソースだと modal_proto(api_pb2) が欠けるため
-    # PyPI 版を Python 3.12 で入れる
+    - name: List installed uv Python versions
+      command: "{{ home }}/.local/bin/uv python list --only-installed"
+      register: uv_py_list
+      changed_when: false
+      failed_when: false
+      tags: [tools]
+
     - name: Ensure Python 3.12 for Modal CLI
-      become: yes
-      become_user: "{{ real_user }}"
-      shell: "{{ home }}/.local/bin/uv python install 3.12"
-      args:
-        creates: "{{ home }}/.local/share/uv/python/cpython-3.12-linux-x86_64-gnu/bin/python3.12"
+      command: "{{ home }}/.local/bin/uv python install 3.12"
+      when: uv_py_list.rc != 0 or ('3.12' not in (uv_py_list.stdout | default('')))
+      tags: [tools]
 
     - name: Install Modal CLI via uv
-      become: yes
-      become_user: "{{ real_user }}"
       shell: "{{ home }}/.local/bin/uv tool install modal --python 3.12"
       args:
-        creates: "{{ home }}/.local/share/uv/tools/modal/lib/python3.12/site-packages/modal_proto/api_pb2.py"
-
-    # ========================================
-    # 11b. flyctl (Fly.io CLI)
-    # https://fly.io/docs/flyctl/install/
-    # ========================================
-    - name: Install flyctl
-      become: yes
-      become_user: "{{ real_user }}"
-      shell: curl -L https://fly.io/install.sh | sh
-      args:
-        creates: "{{ home }}/.fly/bin/flyctl"
+        creates: "{{ home }}/.local/bin/modal"
+      tags: [tools]
 
     # ========================================
     # 11c. bws (Bitwarden Secrets Manager CLI)
-    # https://bitwarden.com/help/secrets-manager-cli/
-    # https://github.com/bitwarden/sdk-sm/releases
     # ========================================
-    - name: Set architecture fact for bws
-      set_fact:
-        bws_arch: "{{ 'x86_64' if uname_m.stdout == 'x86_64' else 'aarch64' }}"
+    - name: Check installed bws version
+      command: /usr/local/bin/bws --version
+      register: bws_installed
+      failed_when: false
+      changed_when: false
+      tags: [tools]
 
-    - name: Get latest bws release tag
-      uri:
-        url: https://api.github.com/repos/bitwarden/sdk-sm/releases?per_page=20
-        return_content: yes
-        headers:
-          Accept: application/vnd.github+json
-      register: bws_releases
-      retries: 3
-      delay: 5
-      until: bws_releases is succeeded
-
-    - name: Set bws version fact
-      set_fact:
-        bws_version: "{{ (bws_releases.json | selectattr('tag_name', 'match', '^bws-v') | list | first).tag_name | regex_replace('^bws-v', '') }}"
-
-    - name: Download bws archive from GitHub releases
+    - name: Download bws archive
+      become: true
       get_url:
         url: "https://github.com/bitwarden/sdk-sm/releases/download/bws-v{{ bws_version }}/bws-{{ bws_arch }}-unknown-linux-gnu-{{ bws_version }}.zip"
         dest: "/tmp/bws-{{ bws_version }}.zip"
         mode: "0644"
+      when: bws_installed.rc != 0 or bws_version not in (bws_installed.stdout | default(''))
+      tags: [tools]
 
     - name: Install bws
+      become: true
       unarchive:
         src: "/tmp/bws-{{ bws_version }}.zip"
         dest: /usr/local/bin
-        remote_src: yes
-        creates: /usr/local/bin/bws
+        remote_src: true
         mode: "0755"
+      when: bws_installed.rc != 0 or bws_version not in (bws_installed.stdout | default(''))
+      tags: [tools]
 
     # ========================================
-    # 11d. Cursor CLI (agent)
-    # https://cursor.com/docs/cli/overview
+    # 11g. pnpm
     # ========================================
-    - name: Install Cursor CLI
-      become: yes
-      become_user: "{{ real_user }}"
-      shell: curl -fsSL https://cursor.com/install | bash
-      args:
-        creates: "{{ home }}/.local/bin/agent"
+    - name: Install or refresh pnpm
+      include_tasks:
+        file: tasks/curl_installer.yml
+        apply:
+          tags: [node]
+      loop:
+        - name: pnpm
+          pin: "{{ pnpm_pin }}"
+          environment:
+            SHELL: /usr/bin/zsh
+          cmd: curl -fsSL https://get.pnpm.io/install.sh | sh -
+      loop_control:
+        loop_var: installer
+      tags: [node]
 
     # ========================================
-    # 11e. bun (JavaScript runtime & package manager)
-    # https://bun.sh/docs/installation
+    # 11h. Remove leftover bun (no longer used)
     # ========================================
-    - name: Install bun
-      become: yes
-      become_user: "{{ real_user }}"
-      shell: curl -fsSL https://bun.sh/install | bash
-      args:
-        creates: "{{ home }}/.bun/bin/bun"
+    - name: Remove leftover bun install directory
+      file:
+        path: "{{ home }}/.bun"
+        state: absent
+      tags: [node]
 
     # ========================================
-    # 11f. genmedia (fal.ai CLI)
-    # https://github.com/fal-ai-community/genmedia-cli
-    # ========================================
-    - name: Install genmedia
-      become: yes
-      become_user: "{{ real_user }}"
-      shell: |
-        export PATH="{{ home }}/.local/bin:$PATH"
-        curl -fsSL https://genmedia.sh/install | bash
-      args:
-        creates: "{{ home }}/.genmedia/bin/genmedia"
-
-    # ========================================
-    # 11g. herdr (terminal multiplexer)
-    # https://herdr.dev/docs/install/
-    # ========================================
-    - name: Install herdr
-      become: yes
-      become_user: "{{ real_user }}"
-      shell: curl -fsSL https://herdr.dev/install.sh | sh
-      args:
-        creates: "{{ home }}/.local/bin/herdr"
-
-    # ========================================
-    # 11h. pnpm (Node.js package manager)
-    # https://pnpm.io/ja/installation
-    # ========================================
-    - name: Install pnpm
-      become: yes
-      become_user: "{{ real_user }}"
-      environment:
-        SHELL: /usr/bin/zsh
-      shell: curl -fsSL https://get.pnpm.io/install.sh | sh -
-      args:
-        creates: "{{ home }}/.local/share/pnpm/bin/pnpm"
-
-    # ========================================
-    # 11i. asset-generator Cursor skill (global)
-    # Repo SSOT: skills/asset-generator/ → ~/.cursor/skills (+ ~/.agents/skills symlink)
+    # 11i. asset-generator Cursor skill
     # ========================================
     - name: Install asset-generator skill globally
-      become: yes
-      become_user: "{{ real_user }}"
       shell: bash "{{ playbook_dir }}/scripts/setup_asset_generator.sh"
+      tags: [node]
 
     # ========================================
-    # 12. WSL ブラウザ起動 (wslview 非推奨の代替)
-    # wslu はアーカイブ済み。Windows 標準の cmd.exe で URL を開く。
+    # 12. WSL browser opener
     # ========================================
     - name: Deploy WSL browser opener
       copy:
+        src: wsl-browser
         dest: "{{ home }}/.local/bin/wsl-browser"
-        owner: "{{ real_user }}"
-        group: "{{ real_user }}"
         mode: "0755"
-        content: |
-          #!/bin/bash
-          # Open URL in Windows default browser via WSL interop
-          exec cmd.exe /c start "" "$@"
+      tags: [shell]
 
     # ========================================
-    # 13. 設定ファイル配置 (.zshenv / .zshrc)
+    # 13. Dotfiles (.zshenv / .zshrc)
     # ========================================
     - name: Deploy .zshenv
       copy:
+        src: zshenv
         dest: "{{ home }}/.zshenv"
-        owner: "{{ real_user }}"
-        group: "{{ real_user }}"
         mode: "0644"
-        content: |
-          # ----------------------------------------
-          # PATH Configuration
-          # ----------------------------------------
-          typeset -U path
-          export PNPM_HOME="$HOME/.local/share/pnpm"
-          path=(
-            $HOME/.local/bin
-            $HOME/.local/share/fnm
-            $HOME/.fly/bin
-            $HOME/.bun/bin
-            $HOME/.genmedia/bin
-            $PNPM_HOME/bin
-            $path
-          )
-          export PATH
-
-          # Bitwarden Secrets Manager (see docs/bws.md)
-          [ -f "$HOME/.config/inovue/bws.env" ] && source "$HOME/.config/inovue/bws.env"
-
-          # bws 経由のエイリアス（シークレット注入）
-          # genmedia setup は非推奨（FAL_KEY の平文保存）。SM に FAL_KEY を登録して使う。
-          if command -v bws >/dev/null 2>&1; then
-            alias genmedia='bws run -- genmedia'
-          fi
+      tags: [shell]
 
     - name: Deploy .zshrc
       copy:
+        src: zshrc
         dest: "{{ home }}/.zshrc"
-        owner: "{{ real_user }}"
-        group: "{{ real_user }}"
         mode: "0644"
-        content: |
-          # ----------------------------------------
-          # Environment Variables
-          # ----------------------------------------
-          if [ -x "$HOME/.local/bin/wsl-browser" ] && command -v cmd.exe >/dev/null 2>&1; then
-            export BROWSER="$HOME/.local/bin/wsl-browser"
-          fi
+      tags: [shell]
 
-          # ----------------------------------------
-          # Modern CLI Aliases
-          # ----------------------------------------
-          if command -v batcat >/dev/null 2>&1; then
-            alias cat="batcat --style=plain"
-            alias bat="batcat"
-          fi
-
-          if command -v fdfind >/dev/null 2>&1; then
-            alias fd="fdfind"
-          fi
-
-          if command -v eza >/dev/null 2>&1; then
-            alias ls="eza --icons=auto"
-            alias ll="eza -lh --icons=auto --git"
-            alias la="eza -la --icons=auto --git"
-            alias lt="eza --tree --level=2 --icons=auto"
-          fi
-
-          if command -v lazygit >/dev/null 2>&1; then
-            alias lg="lazygit"
-          fi
-
-          if command -v rg >/dev/null 2>&1; then
-            alias grep="rg"
-          fi
-
-          # ----------------------------------------
-          # Tool Initializations
-          # ----------------------------------------
-          if [ -f "$HOME/.local/bin/sheldon" ]; then
-            eval "$("$HOME/.local/bin/sheldon" source)"
-          fi
-
-          if command -v starship >/dev/null 2>&1; then
-            eval "$(starship init zsh)"
-          fi
-
-          if command -v zoxide >/dev/null 2>&1; then
-            eval "$(zoxide init zsh)"
-            alias cd="z"
-          fi
-
-          if [ -f "$HOME/.local/share/fnm/fnm" ]; then
-            eval "$(fnm env --use-on-cd)"
-          fi
-
-          if command -v uv >/dev/null 2>&1; then
-            eval "$(uv generate-shell-completion zsh)"
-          fi
-
-          [ -f /usr/share/doc/fzf/examples/key-bindings.zsh ] && source /usr/share/doc/fzf/examples/key-bindings.zsh
-          [ -f /usr/share/doc/fzf/examples/completion.zsh ] && source /usr/share/doc/fzf/examples/completion.zsh
-
-    # ========================================
-    # 完了メッセージ
-    # ========================================
     - name: Done message
       debug:
         msg: |
-          ========================================
-          🚀 セットアップ完了！ (WSL Ubuntu Ultra Modern + HyperFrames Ready)
-          ========================================
-          `exec zsh` を実行して設定を反映してください。
-          HyperFrames の動作確認: `npx hyperframes doctor`
+          Setup complete.
+          Run `exec zsh` to apply shell config.
+          HyperFrames check: `npx hyperframes doctor`
+      tags: always

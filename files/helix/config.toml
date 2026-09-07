@@ -1,0 +1,30 @@
+# Helix config (25.x)
+# 公式 example: https://docs.helix-editor.com/configuration.html
+# 定番: relative 行番号 / cursorline / color-modes / indent-guides / soft-wrap
+# クリップボードは wl-clipboard を自動検出
+theme = "onedark"
+
+[editor]
+line-number = "relative"
+cursorline = true
+color-modes = true
+bufferline = "multiple"
+true-color = true
+rulers = [80]
+
+[editor.cursor-shape]
+insert = "bar"
+normal = "block"
+select = "underline"
+
+[editor.file-picker]
+hidden = false
+
+[editor.lsp]
+display-inlay-hints = true
+
+[editor.indent-guides]
+render = true
+
+[editor.soft-wrap]
+enable = true

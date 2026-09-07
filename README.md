@@ -1,8 +1,8 @@
 # dotfiles
 
-WSL2 + **Ubuntu 24.04** 向け CLI 開発環境を Ansible で一括構築する。
+WSL2 + **Ubuntu 24.04 / 26.04** 向け CLI 開発環境を Ansible で一括構築する。
 
-> 22.04 等は playbook 内の apt パッケージ名が合わず失敗する。24.04 以外は未検証。
+> 22.04 等は playbook 内の apt パッケージ名が合わず失敗する。
 
 ## セットアップ
 
@@ -15,9 +15,9 @@ exec zsh   # デフォルトシェル変更・PATH・zsh 設定を反映（必�
 
 Send URL がある場合は `./setup.sh --bws-send-url "https://send.bitwarden.com/#..."` も可。
 
-- `setup.sh` — Ansible / `community.general` を未導入なら入れてから playbook を実行。末尾で bws トークン設定も可能
+- `setup.sh` — Ansible 未導入なら入れてから playbook を実行（ユーザー権限。`become` 用に先に `sudo true`）。末尾で bws トークン設定も可能
 - 再実行可（冪等）。ネットワーク必須
-- Git デフォルト: `user.name` = `SUDO_USER`、`user.email` = `{user}@users.noreply.github.com`
+- Git デフォルト: `user.name` = 実行ユーザー、`user.email` = `{user}@users.noreply.github.com`
 
 ```bash
 ./setup.sh \
@@ -29,21 +29,39 @@ Bitwarden Send URL は `--bws-send-url`、環境変数 `BWS_SEND_URL`、また�
 
 WSL 上では続けて [docs/agent-browser-win.md](docs/agent-browser-win.md) のブリッジ（Windows Chrome 専用プロファイル + agent-browser）もセットアップする。単体実行は `./scripts/setup_agent_browser_win.sh`。
 
-手動: `sudo ansible-playbook playbook.yml`（`-e` も同様に渡せる。bws トークン設定は `./scripts/setup_bws.sh`、Windows Chrome ブリッジは `./scripts/setup_agent_browser_win.sh`、asset-generator skill の再同期は `./scripts/setup_asset_generator.sh` で別途）
+手動:
+
+```bash
+sudo true   # become 用（passwordless sudo なら不要な場合あり）
+ansible-playbook playbook.yml
+```
+
+`-e` も同様に渡せる。bws トークン設定は `./scripts/setup_bws.sh`、Windows Chrome ブリッジは `./scripts/setup_agent_browser_win.sh`、asset-generator skill の再同期は `./scripts/setup_asset_generator.sh` で別途。
+
+部分実行例: `ansible-playbook playbook.yml --tags shell,node`
 
 ## インストール内容
 
 | カテゴリ | ツール |
 | --- | --- |
-| シェル | zsh, Starship, Sheldon (+ completions / autosuggestions / syntax-highlighting), herdr |
+| シェル | zsh, Starship, Sheldon (+ completions / autosuggestions / syntax-highlighting), herdr, Helix |
 | ファイル操作 | eza, zoxide, bat, ripgrep, fd-find, fzf, btop |
 | Git | lazygit, gh, git-delta, hunk (hunkdiff) |
-| ランタイム | fnm + Node.js LTS, bun, pnpm, uv, Modal CLI |
-| AI / デプロイ | genmedia, Cursor CLI (`agent`), agent-browser（Linux）+ agent-browser-win（WSL→Windows Chrome）, asset-generator skill（`~/.cursor/skills`） |
+| ランタイム | fnm + Node.js LTS, pnpm, uv, Modal CLI |
+| AI / デプロイ | genmedia, Cursor CLI (`agent`), agent-browser（Linux Chrome for Testing）+ HyperFrames（別途 Headless Shell）+ agent-browser-win（WSL→Windows Chrome）, asset-generator skill（`~/.cursor/skills`） |
 | インフラ | flyctl, bws |
-| メディア | HyperFrames, ffmpeg, libvips, Noto CJK フォント |
+| メディア | HyperFrames, ffmpeg, Noto CJK フォント |
 
-`.zshenv` / `.zshrc` / `starship.toml` / `sheldon/plugins.toml` を配置。WSL では `wsl-browser` を `BROWSER` に設定（`cmd.exe` interop 前提）。
+設定は [`files/`](files/)（`.zshenv` / `.zshrc` / `starship.toml` / Sheldon / Helix / `wsl-browser`）。WSL では `wsl-browser` を `BROWSER` に設定（`cmd.exe` interop 前提）。
+
+### ピン留めバージョン
+
+`playbook.yml` の vars を上げて再実行すると更新する。
+
+- GitHub リリース直置き: `sheldon_version` / `lazygit_version` / `bws_version` / `helix_version`（実バイナリの版と照合）
+- 公式 install スクリプト: `starship_pin` / `zoxide_pin` / `fnm_pin` / `uv_pin` / `flyctl_pin` / `herdr_pin` / `pnpm_pin` / `genmedia_pin` / `cursor_agent_pin`（`~/.config/inovue/tool-pins/` のスタンプ。ピンを上げると upstream 最新を取り直す）
+
+GitHub API の latest 自動追従はしない。
 
 ## セットアップ後
 
@@ -68,8 +86,9 @@ npx hyperframes doctor
 
 | 症状 | 対処 |
 | --- | --- |
-| apt / パッケージ名エラー | Ubuntu 24.04 か確認 |
-| Sheldon / lazygit / bws の取得失敗 | GitHub API rate limit — 時間をおいて `./setup.sh` を再実行 |
+| apt / パッケージ名エラー | Ubuntu 24.04 または 26.04 か確認 |
+| `become` / sudo 失敗 | `sudo true` してから再実行。または passwordless sudo を設定 |
+| Sheldon / lazygit / bws / Helix の更新 | `playbook.yml` のピンを上げて `./setup.sh` |
 | `node` / エイリアスが効かない | `exec zsh` または新しいターミナル |
 | ブラウザが開かない | WSL interop 有効化、`cmd.exe` が PATH にあるか確認 |
 | ログイン済みサイトを自動化できない | [docs/agent-browser-win.md](docs/agent-browser-win.md) — `agent-browser-win` を使う（普段の Chrome プロファイルは不可） |
