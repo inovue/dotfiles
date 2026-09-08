@@ -1,0 +1,39 @@
+#!/usr/bin/env bash
+# Node/electron spawn `wezterm` by exact name; WSL only ships wezterm.exe.
+# terminal-browser needs this for pane list/split on WezTerm.
+set -euo pipefail
+
+resolve() {
+  if command -v wezterm.exe >/dev/null 2>&1; then
+    command -v wezterm.exe
+    return 0
+  fi
+  local candidate
+  for candidate in \
+    "/mnt/c/Program Files/WezTerm/wezterm.exe" \
+    "/mnt/c/Program Files (x86)/WezTerm/wezterm.exe" \
+    "/mnt/c/Users/${USER}/AppData/Local/Programs/WezTerm/wezterm.exe"; do
+    if [[ -x "$candidate" ]]; then
+      printf '%s\n' "$candidate"
+      return 0
+    fi
+  done
+  # USERPROFILE may differ from Linux $USER
+  local winuser
+  winuser="$(cmd.exe /c "echo %USERNAME%" 2>/dev/null | tr -d '\r' || true)"
+  if [[ -n "$winuser" ]]; then
+    candidate="/mnt/c/Users/${winuser}/AppData/Local/Programs/WezTerm/wezterm.exe"
+    if [[ -x "$candidate" ]]; then
+      printf '%s\n' "$candidate"
+      return 0
+    fi
+  fi
+  return 1
+}
+
+EXE="$(resolve)" || {
+  echo "wezterm.exe not found (install WezTerm nightly on Windows; see windows/wezterm/README.md)" >&2
+  exit 127
+}
+
+exec "$EXE" "$@"

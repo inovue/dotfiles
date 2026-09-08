@@ -1,5 +1,6 @@
 # Docs: https://herdr.dev/docs/configuration/
 # hunk-diff keys: https://github.com/jhochenbaum/herdr-hunk-diff
+# terminal-browser plugin: https://github.com/zenbu-labs/terminal-browser/tree/main/herdr-plugin
 
 [theme]
 name = "catppuccin"
@@ -34,9 +35,18 @@ command = "jhochenbaum.hunkdiff.review:staged"
 description = "hunk: review staged changes"
 
 [[keys.command]]
+key = "prefix+shift+b"
+type = "plugin_action"
+command = "zenbu-labs.terminal-browser.open-split"
+description = "terminal-browser: open right split"
+
+[[keys.command]]
 key = "prefix+alt+g"
 type = "popup"
 command = "lazygit"
 description = "lazygit"
 width = "90%"
 height = "90%"
+
+[experimental]
+kitty_graphics = true

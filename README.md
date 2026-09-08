@@ -31,6 +31,8 @@ Bitwarden Send URL は `--bws-send-url`、環境変数 `BWS_SEND_URL`、また�
 
 WSL 上では続けて [docs/agent-browser-win.md](docs/agent-browser-win.md) のブリッジもセットアップする。単体実行は `./scripts/setup_agent_browser_win.sh`。
 
+**Windows ホスト設定**（WezTerm など）は Ansible/Stow とは別の [`windows/`](windows/README.md)。terminal-browser 表示には WezTerm **nightly** が必要: `./windows/wezterm/setup.sh`。
+
 手動:
 
 ```bash
@@ -71,7 +73,7 @@ stow.sh               # 日常の link / unlink / restow
 
 | カテゴリ | ツール |
 | --- | --- |
-| シェル | zsh, Starship, Sheldon (+ completions / autosuggestions / syntax-highlighting), herdr (+ herdr-hunk-diff), Helix |
+| シェル | zsh, Starship, Sheldon (+ completions / autosuggestions / syntax-highlighting), herdr (+ herdr-hunk-diff, terminal-browser), Helix |
 | ファイル操作 | eza, zoxide, bat, ripgrep, fd-find, fzf, btop |
 | Git | lazygit, gh, git-delta, hunk (hunkdiff) |
 | ランタイム | fnm + Node.js LTS, pnpm, uv, Modal CLI |
@@ -86,7 +88,7 @@ WSL では `wsl-browser`（`stow/bin`）を `BROWSER` に設定（`cmd.exe` inte
 `ansible/group_vars/all.yml` の値を上げて `./setup.sh`（または該当 tags）を再実行。
 
 - GitHub リリース直置き: `sheldon_version` / `lazygit_version` / `bws_version` / `helix_version`
-- 公式 install スクリプト: `starship_pin` / `zoxide_pin` / `fnm_pin` / `uv_pin` / `flyctl_pin` / `herdr_pin` / `herdr_hunkdiff_pin` / `pnpm_pin` / `genmedia_pin` / `cursor_agent_pin`（`~/.config/inovue/tool-pins/`）
+- 公式 install スクリプト: `starship_pin` / `zoxide_pin` / `fnm_pin` / `uv_pin` / `flyctl_pin` / `herdr_pin` / `herdr_hunkdiff_pin` / `terminal_browser_pin` / `herdr_terminal_browser_pin` / `pnpm_pin` / `genmedia_pin` / `cursor_agent_pin`（`~/.config/inovue/tool-pins/`）
 
 GitHub API の latest 自動追従はしない。
 
@@ -102,6 +104,7 @@ GitHub API の latest 自動追従はしない。
 | genmedia | SM に `FAL_KEY` 登録後 `genmedia` |
 | Cursor CLI | `agent login` |
 | herdr-hunk-diff | `Ctrl+B Shift+H` でレビュー、`Ctrl+B Shift+S` でコメント送信。エージェント idle 時は自動オープン |
+| terminal-browser | `Ctrl+B Shift+B` で右スプリットに開く（herdr プラグイン）。Kitty graphics 対応ターミナルが必要 |
 
 ```bash
 node -v && uv --version && gh --version
@@ -118,6 +121,7 @@ npx hyperframes doctor
 | Sheldon / lazygit / bws / Helix の更新 | `ansible/group_vars/all.yml` のピンを上げて `./setup.sh` |
 | `node` / エイリアスが効かない | `exec zsh` または新しいターミナル |
 | ブラウザが開かない | WSL interop 有効化、`cmd.exe` が PATH にあるか確認 |
+| terminal-browser が WezTerm で真っ黒／何も出ない | `./windows/wezterm/setup.sh`（winget nightly）→ WezTerm 再起動 → `./windows/wezterm/doctor.sh`。Windows Terminal / Cursor 内蔵端末では描画されない。[windows/wezterm/README.md](windows/wezterm/README.md) |
 | ログイン済みサイトを自動化できない | [docs/agent-browser-win.md](docs/agent-browser-win.md) |
 
 個人用 dotfiles。自由に fork してよい。

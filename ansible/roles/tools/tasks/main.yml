@@ -121,6 +121,12 @@
     - name: herdr
       pin: "{{ herdr_pin }}"
       cmd: curl -fsSL https://herdr.dev/install.sh | sh
+    - name: terminal-browser
+      pin: "{{ terminal_browser_pin }}"
+      cmd: |
+        export PATH="{{ home }}/.local/bin:$PATH"
+        export TERMINAL_BROWSER_SKIP_EDITOR_SETUP=1
+        curl -fsSL "https://terminal-browser.sh/install/v/v{{ terminal_browser_pin }}" | bash
   loop_control:
     loop_var: installer
 
@@ -136,6 +142,19 @@
         eval "$({{ home }}/.local/share/fnm/fnm env)"
         herdr plugin install jhochenbaum/herdr-hunk-diff -y
   tags: [herdr]
+
+- name: Install or refresh herdr terminal-browser plugin
+  ansible.builtin.include_tasks:
+    file: "{{ playbook_dir }}/tasks/curl_installer.yml"
+  vars:
+    installer:
+      name: herdr-terminal-browser
+      pin: "{{ herdr_terminal_browser_pin }}"
+      cmd: |
+        export PATH="{{ home }}/.local/bin:$PATH"
+        export TERMINAL_BROWSER_SKIP_EDITOR_SETUP=1
+        herdr plugin install zenbu-labs/terminal-browser/herdr-plugin --ref "v{{ terminal_browser_pin }}" -y
+  tags: [herdr, terminal-browser]
 
 - name: List installed uv Python versions
   ansible.builtin.command: "{{ home }}/.local/bin/uv python list --only-installed"
