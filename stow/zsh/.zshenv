@@ -6,6 +6,7 @@ export PNPM_HOME="$HOME/.local/share/pnpm"
 path=(
   $HOME/.local/bin
   $HOME/.local/share/fnm
+  $HOME/.bun/bin
   $HOME/.fly/bin
   $HOME/.genmedia/bin
   $PNPM_HOME/bin

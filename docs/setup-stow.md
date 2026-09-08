@@ -81,7 +81,7 @@ If Stow refuses because a real file already exists, move/remove the conflict the
 ## Smoke
 
 ```bash
-node -v && uv --version && gh --version
+node -v && bun --version && uv --version && gh --version
 npx hyperframes doctor
 ./windows/wezterm/doctor.sh    # if using TB on Windows WezTerm
 ```

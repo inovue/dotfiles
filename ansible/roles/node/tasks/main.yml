@@ -75,10 +75,15 @@
   loop_control:
     loop_var: installer
 
-- name: Remove leftover bun install directory
-  ansible.builtin.file:
-    path: "{{ home }}/.bun"
-    state: absent
+- name: Install or refresh bun
+  ansible.builtin.include_tasks:
+    file: "{{ playbook_dir }}/tasks/curl_installer.yml"
+  loop:
+    - name: bun
+      pin: "{{ bun_pin }}"
+      cmd: curl -fsSL https://bun.sh/install | bash -s "bun-v{{ bun_pin }}"
+  loop_control:
+    loop_var: installer
 
 - name: Install asset-generator skill globally
   ansible.builtin.shell: bash "{{ dotfiles_root }}/scripts/setup_asset_generator.sh"

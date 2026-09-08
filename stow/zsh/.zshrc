@@ -68,3 +68,6 @@ fi
 
 [ -f /usr/share/doc/fzf/examples/key-bindings.zsh ] && source /usr/share/doc/fzf/examples/key-bindings.zsh
 [ -f /usr/share/doc/fzf/examples/completion.zsh ] && source /usr/share/doc/fzf/examples/completion.zsh
+
+# bun shell completions (installed by ansible node role → ~/.bun)
+[ -s "$HOME/.bun/_bun" ] && source "$HOME/.bun/_bun"
