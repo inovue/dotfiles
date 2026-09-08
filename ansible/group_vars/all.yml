@@ -34,5 +34,6 @@ stow_packages:
   - sheldon
   - helix
   - herdr
+  - hunk
   - bin
   - cursor

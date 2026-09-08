@@ -48,7 +48,7 @@ ANSIBLE_CONFIG=ansible/ansible.cfg ansible-playbook -i ansible/inventory ansible
 stow/                 # 設定のみ（1 アプリ = 1 パッケージ、$HOME をミラー）
   zsh/ .zshenv .zshrc
   starship/ .config/starship.toml
-  sheldon/ helix/ herdr/ bin/
+  sheldon/ helix/ herdr/ hunk/ bin/
   cursor/ .cursor/statusline.sh   # cli-config.json は認証込みのため Stow せず Ansible が statusLine だけ注入
 ansible/              # プロビジョニングのみ
   site.yml            # 薄いプレイブック
