@@ -90,15 +90,6 @@ Skill: `agent-browser-win`（セットアップでインストール）。
 | 環境変数が効かない | ラッパー経由で呼ぶこと（`AGENT_BROWSER_WIN_*` は sh が PS へ転送）。PS1 直呼びなら Windows 側で `$env:...` を設定 |
 | `Invalid AGENT_BROWSER_WIN_PROFILE` | 8文字以上・パス禁則文字なし・Chrome 予約名（`Default` 等）以外 |
 
-## 安定化の仕組み（実装済み）
-
-- **CDP 所有者検証**: HTTP 応答だけでなく、listen PID の cmdline が `--user-data-dir=<専用プロファイル>` かつ `--remote-debugging-port=<設定ポート>` かを確認。他人の CDP を「起動済み」と誤認しない
-- **mutex**: `Local\AgentBrowserWin_<profile>_<port>` で同一プロファイル＋ポートの並列呼び出しを直列化（最大 120 秒待機）
-- **プロファイル照合**: フォルダ名の部分一致ではなく `--user-data-dir` のフルパス一致
-- **セッション限定 daemon reset**: 他プロファイル用の `agent-browser` プロセスを巻き込み殺さない
-- **SingletonLock 掃除**: CDP 無しでプロファイルが残ロックだけのとき起動前に除去
-- **プロファイル名バリデーション**: 短すぎる名前／予約名を拒否
-
 ## プラットフォーム上の制約（塞げない）
 
 - 普段使いの Chrome `User Data` は Chrome 136+ が CDP を拒否する → 専用プロファイル必須
@@ -111,3 +102,12 @@ Skill: `agent-browser-win`（セットアップでインストール）。
 - `scripts/agent-browser-win.ps1` — Windows 実装
 - `scripts/setup_agent_browser_win.sh` — セットアップ
 - `skills/agent-browser-win/SKILL.md` — Cursor skill ソース
+
+## Maintainer notes（実装の安定化）
+
+日常の操作では不要。挙動を変えるときだけ読む。
+
+- **CDP 所有者検証**: listen PID の cmdline が専用 `--user-data-dir` と `--remote-debugging-port` かを確認
+- **mutex**: `Local\AgentBrowserWin_<profile>_<port>`（最大 120 秒）
+- **プロファイル照合**: `--user-data-dir` フルパス一致
+- **セッション限定 daemon reset** / **SingletonLock 掃除** / **プロファイル名バリデーション**

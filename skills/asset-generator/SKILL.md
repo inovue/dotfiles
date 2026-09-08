@@ -89,43 +89,17 @@ The CONFIRM TOKEN is a SHA256 digest of **every** bound flag: theme, grid, cells
 
 ## ⚡ Commands
 
+Copy dry-run → confirm with **identical** flags. Full examples: `references/commands.md`.
+
 ```bash
 skill="$HOME/.cursor/skills/asset-generator"
 cd "$skill"
-
-# Dry-run — copy CONFIRM TOKEN + GRILL_ACK; include --out before token is final
-./run.sh --print-prompt -g 4 "Financial Fantasy Logos" -s flat \
-  --items cells.json --out src/assets/images/generated/logos
-
-# With refs (user-requested only) — same --out on both steps
-./run.sh --print-prompt -g 4 "Financial Fantasy Logos" -s flat \
-  --items cells.json -r ../public/favicon.svg -m style \
-  --out src/assets/images/generated/logos
-
-# Generate — paste token from dry-run; flags must match exactly
-./run.sh --confirm abc123def456 --grill-ack <GRILL_ACK> --preset logo -g 4 "Financial Fantasy Logos" -s flat \
-  --items cells.json -r ../public/favicon.svg -m style \
-  -f png --out src/assets/images/generated/logos
-
-# Blue/cyan logos — chroma-key only
-./run.sh --confirm <TOKEN> --grill-ack <GRILL_ACK> -g 4 "Logos" --no-rembg --tight \
-  --items cells.json --out out
-
-# Horizontal wordmarks — 4x2 landscape cells
-./run.sh --print-prompt -g 4x2 "Brand Wordmarks" --preset wordmark --items cells-8.json --out out
-./run.sh --confirm <TOKEN> --grill-ack <GRILL_ACK> -g 4x2 "Brand Wordmarks" --preset wordmark \
-  --items cells-8.json --out out
-
-# Post-generation validation (no API)
+./run.sh --print-prompt -g 4 "Theme" -s flat --items cells.json --out out
+./run.sh --confirm <TOKEN> --grill-ack <GRILL_ACK> -g 4 "Theme" -s flat --items cells.json --out out
 ./run.sh --inspect out
 ```
 
-### Single hero
-
-```bash
-./run.sh --print-prompt "AI Workspace" -s glass -a 16:9 -l right-heavy --out hero.webp
-./run.sh --confirm <TOKEN> "AI Workspace" -s glass -a 16:9 -l right-heavy --out hero.webp
-```
+Wordmarks: `-g 4x2 --preset wordmark`. Hero: omit grid, use `-a` / `-l` / `--out file.webp`.
 
 ---
 
@@ -162,4 +136,4 @@ cd "$skill"
 └── manifest.json   # prompt, itemsList, cellSpecs, quality, confirmToken
 ```
 
-Troubleshooting: `references/troubleshooting.md` · Grill: `references/grill-guide.md` · Manual E2E: `references/manual-validation.md` · Scoring: `references/quality-rubric.md`
+Troubleshooting: `references/troubleshooting.md` · Commands: `references/commands.md` · Grill: `references/grill-guide.md` · Manual E2E: `references/manual-validation.md` · Scoring: `references/quality-rubric.md`

@@ -1,6 +1,7 @@
 # Windows host configs
 
-WSL の Ansible / Stow（`ansible/`, `stow/`）とは別に、**Windows 側に置く設定・セットアップ**をここに置く。
+WSL の Ansible / Stow（`ansible/`, `stow/`）とは別に、**Windows 側に置く設定・セットアップ**をここに置く。  
+Repo map: [../AGENTS.md](../AGENTS.md) · [../docs/README.md](../docs/README.md)。
 
 | パス | 役割 |
 | --- | --- |

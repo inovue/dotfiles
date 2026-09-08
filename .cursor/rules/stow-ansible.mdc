@@ -1,0 +1,12 @@
+---
+description: Stow configs and Ansible pins — edit conventions for this repo
+globs: stow/**/*,ansible/**/*,setup.sh,stow.sh
+alwaysApply: false
+---
+
+# Stow + Ansible
+
+- Configs live under `stow/<pkg>/` mirroring `$HOME`. Apply with `./stow.sh restow <pkg>`.
+- Pins and `stow_packages` live in `ansible/group_vars/all.yml`. Bump then `./setup.sh --tags …`.
+- Do not hand-create parallel copies under `~` outside Stow.
+- Deeper map: `docs/architecture.md`, `docs/setup-stow.md`.

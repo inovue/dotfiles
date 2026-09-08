@@ -2,6 +2,8 @@
 
 機密情報は Bitwarden SM で一元管理し、ローカルに `.env` を置かず `bws` で注入する。
 
+**Agents (daily):** skip admin setup — jump to [開発者](#開発者) (`bws run`). Index: [README.md](README.md).
+
 ---
 
 ## Bitwarden リソース構成

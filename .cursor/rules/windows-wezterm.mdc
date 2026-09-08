@@ -1,0 +1,11 @@
+---
+description: Windows WezTerm / terminal-browser graphics and IME notes
+globs: windows/**/*
+alwaysApply: false
+---
+
+# Windows WezTerm
+
+- SSOT for nightly install, Kitty graphics, JP IME workaround: `windows/wezterm/README.md`
+- Apply: `./windows/wezterm/setup.sh` then fully quit/reopen WezTerm; check `./windows/wezterm/doctor.sh`
+- herdr usage (keys, plugins): `docs/herdr.md` — do not duplicate WezTerm troubleshooting there
