@@ -4,6 +4,9 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$ROOT_DIR"
 
+ANSIBLE_DIR="$ROOT_DIR/ansible"
+export ANSIBLE_CONFIG="$ANSIBLE_DIR/ansible.cfg"
+
 log() {
   echo "==> $*"
 }
@@ -53,7 +56,6 @@ run_bws_setup() {
 }
 
 run_agent_browser_win_setup() {
-  # WSL + Windows Chrome CDP bridge for Cursor
   if ! command -v powershell.exe >/dev/null 2>&1; then
     log "Skipping agent-browser-win setup (powershell.exe not found; not WSL?)"
     return 0
@@ -88,14 +90,12 @@ while [ $# -gt 0 ]; do
   esac
 done
 
-# Ensure sudo works for playbook `become` (NOPASSWD or interactive cache).
-# Prefer `sudo true` over `sudo -v` — the latter can require a TTY even with NOPASSWD.
 if ! sudo -n true 2>/dev/null; then
   sudo true
 fi
 
 log "Running setup playbook..."
-ansible-playbook -i "$ROOT_DIR/inventory" "$ROOT_DIR/playbook.yml" "${ANSIBLE_ARGS[@]}"
+ansible-playbook -i "$ANSIBLE_DIR/inventory" "$ANSIBLE_DIR/site.yml" "${ANSIBLE_ARGS[@]}"
 
 BWS_SEND_URL="${BWS_SEND_URL:-$BWS_SEND_URL_ARG}"
 export BWS_SEND_URL

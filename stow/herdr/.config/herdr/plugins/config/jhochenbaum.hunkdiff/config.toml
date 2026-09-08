@@ -1,0 +1,6 @@
+# Non-default overrides only.
+# Docs: https://github.com/jhochenbaum/herdr-hunk-diff#configuration
+
+[review]
+auto_open = true
+watch = true

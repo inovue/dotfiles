@@ -1,0 +1,40 @@
+---
+# Provisioning only — configs live in ../stow and are linked by the dotfiles role.
+- name: WSL Ubuntu CLI environment
+  hosts: localhost
+  connection: local
+  become: false
+  gather_facts: true
+  environment:
+    DEBIAN_FRONTEND: noninteractive
+
+  pre_tasks:
+    - name: Set architecture facts for release installs
+      ansible.builtin.set_fact:
+        sheldon_arch: "{{ 'x86_64-unknown-linux-musl' if ansible_facts['architecture'] == 'x86_64' else 'aarch64-unknown-linux-musl' }}"
+        lazygit_arch: "{{ 'linux_x86_64' if ansible_facts['architecture'] == 'x86_64' else 'linux_arm64' }}"
+        bws_arch: "{{ 'x86_64' if ansible_facts['architecture'] == 'x86_64' else 'aarch64' }}"
+      tags: always
+
+  roles:
+    - role: base
+      tags: [apt, base]
+    - role: shell
+      tags: [shell]
+    - role: node
+      tags: [node]
+    - role: tools
+      tags: [tools, herdr]
+    - role: dotfiles
+      tags: [dotfiles, stow]
+
+  post_tasks:
+    - name: Done message
+      ansible.builtin.debug:
+        msg: |
+          Setup complete.
+          Configs: stow packages under stow/ (linked into $HOME).
+          Day-to-day: ./stow.sh restow
+          Run `exec zsh` to apply shell config.
+          HyperFrames check: `npx hyperframes doctor`
+      tags: always

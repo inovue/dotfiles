@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Install / refresh asset-generator as a global Cursor / agent skill.
-# Idempotent. Intended to run from playbook.yml (after pnpm) or standalone.
+# Idempotent. Intended to run from ansible/site.yml (after pnpm) or standalone.
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"

@@ -1,0 +1,48 @@
+---
+# Ansible provisions; Stow links. One package per app under stow/.
+# Conflicts with unmanaged regular files are cleared first (migration-safe).
+
+- name: Ensure stow is installed
+  become: true
+  ansible.builtin.apt:
+    name: stow
+    state: present
+
+- name: Clear unmanaged conflicts for stow packages
+  ansible.builtin.shell: |
+    set -euo pipefail
+    stow_dir="{{ dotfiles_root }}/stow"
+    pkg="{{ item }}"
+    root="$stow_dir/$pkg"
+    [[ -d "$root" ]] || exit 0
+    while IFS= read -r -d '' src; do
+      rel="${src#"$root"/}"
+      dest="{{ home }}/$rel"
+      if [[ -L "$dest" ]]; then
+        real="$(readlink -f "$dest" || true)"
+        [[ "$real" == "$root/"* ]] && continue
+        rm -f "$dest"
+      elif [[ -f "$dest" ]]; then
+        rm -f "$dest"
+      elif [[ -e "$dest" ]]; then
+        echo "refusing to remove non-file conflict: $dest" >&2
+        exit 1
+      fi
+    done < <(find "$root" -type f -print0)
+  args:
+    executable: /bin/bash
+  loop: "{{ stow_packages }}"
+  changed_when: false
+
+- name: Stow packages into $HOME
+  ansible.builtin.command:
+    argv:
+      - stow
+      - --restow
+      - --dir
+      - "{{ dotfiles_root }}/stow"
+      - --target
+      - "{{ home }}"
+      - "{{ item }}"
+  loop: "{{ stow_packages }}"
+  changed_when: false

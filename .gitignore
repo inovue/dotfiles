@@ -1,11 +1,5 @@
-/stow/.config/bottom
-/stow/.config/gh
-/stow/.config/lazydocker
-/stow/.config/lazygit
-/stow/.config/wslu
-/stow/.config/zellij
-/stow/.config/.wrangler
-/stow/.config/astro
-
-/stow/comfyui/storage/*
-!/stow/comfyui/storage/.gitkeep
+# Local / generated (never commit)
+*.env
+*.pem
+*.key
+secrets/

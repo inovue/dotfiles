@@ -119,7 +119,7 @@ bws secret list
 
 ### 日常の開発
 
-`.env` は置かず、`bws run` で実行する。bws 経由のエイリアスは `.zshenv` に定義（`playbook.yml` で管理）。
+`.env` は置かず、`bws run` で実行する。bws 経由のエイリアスは `.zshenv` に定義（`stow/zsh` で管理）。
 
 ```bash
 bws run -- "npm run dev"
@@ -129,7 +129,7 @@ genmedia --help   # alias 経由。FAL_KEY は SM から注入
 
 > **`genmedia setup` は非推奨** — ローカルに `FAL_KEY` を平文保存するため。SM に `FAL_KEY` を登録し、`genmedia` エイリアス（`bws run -- genmedia`）を使う。
 
-エイリアス追加例（`playbook.yml` の `.zshenv` セクション）:
+エイリアス追加例（`stow/zsh/.zshenv`）:
 
 ```zsh
 alias foo='bws run -- foo'

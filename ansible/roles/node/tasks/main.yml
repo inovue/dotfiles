@@ -1,0 +1,86 @@
+---
+- name: Install or refresh fnm
+  ansible.builtin.include_tasks:
+    file: "{{ playbook_dir }}/tasks/curl_installer.yml"
+  loop:
+    - name: fnm
+      pin: "{{ fnm_pin }}"
+      cmd: curl -fsSL https://fnm.vercel.app/install | bash -s -- --skip-shell
+  loop_control:
+    loop_var: installer
+
+- name: Install Node.js LTS via fnm
+  ansible.builtin.shell: |
+    export PATH="{{ home }}/.local/share/fnm:$PATH"
+    eval "$({{ home }}/.local/share/fnm/fnm env)"
+    {{ home }}/.local/share/fnm/fnm install --lts
+  args:
+    creates: "{{ home }}/.local/share/fnm/aliases/default"
+    executable: /bin/bash
+
+- name: Install hunkdiff via npm
+  ansible.builtin.shell: |
+    export PATH="{{ home }}/.local/share/fnm:$PATH"
+    eval "$({{ home }}/.local/share/fnm/fnm env)"
+    npm install -g hunkdiff
+  args:
+    creates: "{{ home }}/.local/share/fnm/aliases/default/bin/hunk"
+    executable: /bin/bash
+
+- name: Install agent-browser via npm
+  ansible.builtin.shell: |
+    export PATH="{{ home }}/.local/share/fnm:$PATH"
+    eval "$({{ home }}/.local/share/fnm/fnm env)"
+    npm install -g agent-browser
+  args:
+    creates: "{{ home }}/.local/share/fnm/aliases/default/bin/agent-browser"
+    executable: /bin/bash
+
+- name: Install agent-browser Chrome for Testing
+  ansible.builtin.shell: |
+    export PATH="{{ home }}/.local/share/fnm:$PATH"
+    eval "$({{ home }}/.local/share/fnm/fnm env)"
+    agent-browser install
+  args:
+    creates: "{{ home }}/.agent-browser/browsers"
+    executable: /bin/bash
+
+- name: Install agent-browser skill globally for Cursor
+  ansible.builtin.shell: |
+    export PATH="{{ home }}/.local/share/fnm:$PATH"
+    eval "$({{ home }}/.local/share/fnm/fnm env)"
+    npx -y skills add vercel-labs/agent-browser -g -a cursor -s agent-browser -y
+  args:
+    creates: "{{ home }}/.agents/skills/agent-browser/SKILL.md"
+    executable: /bin/bash
+
+- name: Ensure HyperFrames Chrome Headless Shell
+  ansible.builtin.shell: |
+    export PATH="{{ home }}/.local/share/fnm:$PATH"
+    eval "$({{ home }}/.local/share/fnm/fnm env)"
+    npx hyperframes browser ensure
+  args:
+    creates: "{{ home }}/.cache/hyperframes/chrome"
+    executable: /bin/bash
+
+- name: Install or refresh pnpm
+  ansible.builtin.include_tasks:
+    file: "{{ playbook_dir }}/tasks/curl_installer.yml"
+  loop:
+    - name: pnpm
+      pin: "{{ pnpm_pin }}"
+      environment:
+        SHELL: /usr/bin/zsh
+      cmd: curl -fsSL https://get.pnpm.io/install.sh | sh -
+  loop_control:
+    loop_var: installer
+
+- name: Remove leftover bun install directory
+  ansible.builtin.file:
+    path: "{{ home }}/.bun"
+    state: absent
+
+- name: Install asset-generator skill globally
+  ansible.builtin.shell: bash "{{ dotfiles_root }}/scripts/setup_asset_generator.sh"
+  args:
+    executable: /bin/bash

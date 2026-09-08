@@ -1,0 +1,177 @@
+---
+- name: Check installed lazygit version
+  ansible.builtin.command: /usr/local/bin/lazygit --version
+  register: lazygit_installed
+  failed_when: false
+  changed_when: false
+
+- name: Download lazygit archive
+  become: true
+  ansible.builtin.get_url:
+    url: "https://github.com/jesseduffield/lazygit/releases/download/v{{ lazygit_version }}/lazygit_{{ lazygit_version }}_{{ lazygit_arch }}.tar.gz"
+    dest: "/tmp/lazygit-{{ lazygit_version }}.tar.gz"
+    mode: "0644"
+  when: lazygit_installed.rc != 0 or lazygit_version not in (lazygit_installed.stdout | default(''))
+
+- name: Install lazygit
+  become: true
+  ansible.builtin.unarchive:
+    src: "/tmp/lazygit-{{ lazygit_version }}.tar.gz"
+    dest: /usr/local/bin
+    remote_src: true
+    mode: "0755"
+  when: lazygit_installed.rc != 0 or lazygit_version not in (lazygit_installed.stdout | default(''))
+
+- name: Ensure apt keyrings directory exists
+  become: true
+  ansible.builtin.file:
+    path: /etc/apt/keyrings
+    state: directory
+    mode: "0755"
+
+- name: Add GitHub CLI GPG key
+  become: true
+  ansible.builtin.shell: |
+    curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg \
+      | gpg --dearmor -o /etc/apt/keyrings/githubcli-archive-keyring.gpg
+  args:
+    creates: /etc/apt/keyrings/githubcli-archive-keyring.gpg
+    executable: /bin/bash
+
+- name: Get dpkg architecture for GitHub CLI repo
+  ansible.builtin.command: dpkg --print-architecture
+  register: dpkg_arch
+  changed_when: false
+
+- name: Add GitHub CLI repository
+  become: true
+  ansible.builtin.apt_repository:
+    repo: "deb [arch={{ dpkg_arch.stdout }} signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main"
+    state: present
+    filename: github-cli
+
+- name: Install GitHub CLI
+  become: true
+  ansible.builtin.apt:
+    name: gh
+    state: present
+    update_cache: true
+    dpkg_options: force-confdef,force-confold
+
+- name: Install Helix on x86_64 (official GitHub .deb)
+  become: true
+  ansible.builtin.apt:
+    deb: "https://github.com/helix-editor/helix/releases/download/{{ helix_version }}/helix_{{ helix_deb_revision }}_amd64.deb"
+    state: present
+  when: ansible_facts['architecture'] in ["x86_64", "amd64"]
+
+- name: Ensure /opt/helix exists on ARM64
+  become: true
+  ansible.builtin.file:
+    path: /opt/helix
+    state: directory
+    mode: "0755"
+  when: ansible_facts['architecture'] == "aarch64"
+
+- name: Check installed Helix version on ARM64
+  ansible.builtin.command: /usr/local/bin/hx --version
+  register: helix_arm_installed
+  failed_when: false
+  changed_when: false
+  when: ansible_facts['architecture'] == "aarch64"
+
+- name: Install Helix on ARM64 (official tarball)
+  become: true
+  ansible.builtin.unarchive:
+    src: "https://github.com/helix-editor/helix/releases/download/{{ helix_version }}/helix-{{ helix_version }}-aarch64-linux.tar.xz"
+    dest: /opt/helix
+    remote_src: true
+    extra_opts: [--strip-components=1]
+  when: >
+    ansible_facts['architecture'] == "aarch64"
+    and (helix_arm_installed.rc != 0
+         or helix_version not in (helix_arm_installed.stdout | default('')))
+
+- name: Symlink hx into PATH on ARM64
+  become: true
+  ansible.builtin.file:
+    src: /opt/helix/hx
+    dest: /usr/local/bin/hx
+    state: link
+  when: ansible_facts['architecture'] == "aarch64"
+
+- name: Install or refresh tool curl installers
+  ansible.builtin.include_tasks:
+    file: "{{ playbook_dir }}/tasks/curl_installer.yml"
+  loop:
+    - name: uv
+      pin: "{{ uv_pin }}"
+      cmd: curl -LsSf https://astral.sh/uv/install.sh | sh
+    - name: flyctl
+      pin: "{{ flyctl_pin }}"
+      cmd: curl -L https://fly.io/install.sh | sh
+    - name: cursor-agent
+      pin: "{{ cursor_agent_pin }}"
+      cmd: curl -fsSL https://cursor.com/install | bash
+    - name: genmedia
+      pin: "{{ genmedia_pin }}"
+      cmd: |
+        export PATH="{{ home }}/.local/bin:$PATH"
+        curl -fsSL https://genmedia.sh/install | bash
+    - name: herdr
+      pin: "{{ herdr_pin }}"
+      cmd: curl -fsSL https://herdr.dev/install.sh | sh
+  loop_control:
+    loop_var: installer
+
+- name: Install or refresh herdr-hunk-diff plugin
+  ansible.builtin.include_tasks:
+    file: "{{ playbook_dir }}/tasks/curl_installer.yml"
+  vars:
+    installer:
+      name: herdr-hunkdiff
+      pin: "{{ herdr_hunkdiff_pin }}"
+      cmd: |
+        export PATH="{{ home }}/.local/share/fnm:{{ home }}/.local/bin:$PATH"
+        eval "$({{ home }}/.local/share/fnm/fnm env)"
+        herdr plugin install jhochenbaum/herdr-hunk-diff -y
+  tags: [herdr]
+
+- name: List installed uv Python versions
+  ansible.builtin.command: "{{ home }}/.local/bin/uv python list --only-installed"
+  register: uv_py_list
+  changed_when: false
+  failed_when: false
+
+- name: Ensure Python 3.12 for Modal CLI
+  ansible.builtin.command: "{{ home }}/.local/bin/uv python install 3.12"
+  when: uv_py_list.rc != 0 or ('3.12' not in (uv_py_list.stdout | default('')))
+
+- name: Install Modal CLI via uv
+  ansible.builtin.shell: "{{ home }}/.local/bin/uv tool install modal --python 3.12"
+  args:
+    creates: "{{ home }}/.local/bin/modal"
+    executable: /bin/bash
+
+- name: Check installed bws version
+  ansible.builtin.command: /usr/local/bin/bws --version
+  register: bws_installed
+  failed_when: false
+  changed_when: false
+
+- name: Download bws archive
+  become: true
+  ansible.builtin.get_url:
+    url: "https://github.com/bitwarden/sdk-sm/releases/download/bws-v{{ bws_version }}/bws-{{ bws_arch }}-unknown-linux-gnu-{{ bws_version }}.zip"
+    dest: "/tmp/bws-{{ bws_version }}.zip"
+    mode: "0644"
+  when: bws_installed.rc != 0 or bws_version not in (bws_installed.stdout | default(''))
+
+- name: Install bws
+  become: true
+  ansible.builtin.unarchive:
+    src: "/tmp/bws-{{ bws_version }}.zip"
+    dest: /usr/local/bin
+    remote_src: true
+    mode: "0755"
+  when: bws_installed.rc != 0 or bws_version not in (bws_installed.stdout | default(''))

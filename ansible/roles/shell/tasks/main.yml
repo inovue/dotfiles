@@ -1,0 +1,61 @@
+---
+- name: Change default shell to zsh
+  become: true
+  ansible.builtin.user:
+    name: "{{ ansible_facts['user_id'] }}"
+    shell: /usr/bin/zsh
+
+- name: Install or refresh shell curl installers
+  ansible.builtin.include_tasks:
+    file: "{{ playbook_dir }}/tasks/curl_installer.yml"
+  loop:
+    - name: starship
+      pin: "{{ starship_pin }}"
+      become: true
+      cmd: curl -sS https://starship.rs/install.sh | sh -s -- -y
+    - name: zoxide
+      pin: "{{ zoxide_pin }}"
+      cmd: curl -sS https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh | bash
+  loop_control:
+    loop_var: installer
+
+- name: Check installed Sheldon version
+  ansible.builtin.command: "{{ home }}/.local/bin/sheldon --version"
+  register: sheldon_installed
+  failed_when: false
+  changed_when: false
+
+- name: Download Sheldon release archive
+  ansible.builtin.get_url:
+    url: "https://github.com/rossmacarthur/sheldon/releases/download/{{ sheldon_version }}/sheldon-{{ sheldon_version }}-{{ sheldon_arch }}.tar.gz"
+    dest: "/tmp/sheldon-{{ sheldon_version }}.tar.gz"
+    mode: "0644"
+  when: sheldon_installed.rc != 0 or sheldon_version not in (sheldon_installed.stdout | default(''))
+
+- name: Install Sheldon binary
+  ansible.builtin.unarchive:
+    src: "/tmp/sheldon-{{ sheldon_version }}.tar.gz"
+    dest: "{{ home }}/.local/bin"
+    remote_src: true
+    mode: "0755"
+  when: sheldon_installed.rc != 0 or sheldon_version not in (sheldon_installed.stdout | default(''))
+
+- name: Read git global user.name
+  ansible.builtin.command: git config --global --get user.name
+  register: current_git_name
+  failed_when: false
+  changed_when: false
+
+- name: Configure git global user.name
+  ansible.builtin.command: git config --global user.name "{{ git_user_name }}"
+  when: (current_git_name.stdout | default('')) != git_user_name
+
+- name: Read git global user.email
+  ansible.builtin.command: git config --global --get user.email
+  register: current_git_email
+  failed_when: false
+  changed_when: false
+
+- name: Configure git global user.email
+  ansible.builtin.command: git config --global user.email "{{ git_user_email }}"
+  when: (current_git_email.stdout | default('')) != git_user_email
