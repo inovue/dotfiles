@@ -46,3 +46,37 @@
       - "{{ item }}"
   loop: "{{ stow_packages }}"
   changed_when: false
+
+# cli-config.json holds auth/caches — do not stow; only ensure statusLine points at the script.
+- name: Ensure Cursor CLI statusLine uses stowed script
+  ansible.builtin.shell: |
+    set -euo pipefail
+    cfg="{{ home }}/.cursor/cli-config.json"
+    mkdir -p "{{ home }}/.cursor"
+    if [[ ! -f "$cfg" ]]; then
+      echo '{}' > "$cfg"
+    fi
+    python3 - "$cfg" <<'PY'
+    import json, sys
+    path = sys.argv[1]
+    with open(path, encoding="utf-8") as f:
+        data = json.load(f)
+    wanted = {
+        "type": "command",
+        "command": "~/.cursor/statusline.sh",
+        "padding": 2,
+    }
+    if data.get("statusLine") == wanted:
+        print("UNCHANGED")
+        raise SystemExit(0)
+    data["statusLine"] = wanted
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=2)
+        f.write("\n")
+    print("CHANGED")
+    PY
+  args:
+    executable: /bin/bash
+  register: cursor_statusline_cfg
+  changed_when: "'CHANGED' in cursor_statusline_cfg.stdout"
+  tags: [dotfiles, stow, cursor]

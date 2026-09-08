@@ -47,6 +47,7 @@ stow/                 # 設定のみ（1 アプリ = 1 パッケージ、$HOME �
   zsh/ .zshenv .zshrc
   starship/ .config/starship.toml
   sheldon/ helix/ herdr/ bin/
+  cursor/ .cursor/statusline.sh   # cli-config.json は認証込みのため Stow せず Ansible が statusLine だけ注入
 ansible/              # プロビジョニングのみ
   site.yml            # 薄いプレイブック
   group_vars/all.yml  # バージョンピン・stow_packages

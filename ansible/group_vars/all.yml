@@ -33,3 +33,4 @@ stow_packages:
   - helix
   - herdr
   - bin
+  - cursor
