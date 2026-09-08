@@ -46,6 +46,17 @@ WINUSER="$(cmd.exe /c "echo %USERNAME%" 2>/dev/null | tr -d '\r')"
 LUA="/mnt/c/Users/${WINUSER}/.wezterm.lua"
 if [[ -f "$LUA" ]]; then
   ok "Found $LUA"
+  if rg -q "UDEV Gothic 35NFLG" "$LUA"; then
+    ok "font = UDEV Gothic 35NFLG"
+  else
+    warn "Expected font 'UDEV Gothic 35NFLG' in $LUA"
+  fi
+  FONT_MARKER="/mnt/c/Users/${WINUSER}/AppData/Local/Microsoft/Windows/Fonts/UDEVGothic35NFLG-Regular.ttf"
+  if [[ -f "$FONT_MARKER" ]]; then
+    ok "UDEV Gothic 35NFLG installed ($FONT_MARKER)"
+  else
+    bad "UDEV Gothic 35NFLG missing — run ./windows/wezterm/setup.sh"
+  fi
   if rg -q 'enable_kitty_graphics\s*=\s*true' "$LUA"; then
     ok "enable_kitty_graphics = true"
   else

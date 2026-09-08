@@ -14,7 +14,8 @@ config.enable_kitty_keyboard = false
 
 config.max_fps = 120
 config.prefer_egl = true
-config.font = wezterm.font_with_fallback({ 'HackGen Console NF' })
+config.font = wezterm.font_with_fallback({ 'UDEV Gothic 35NFLG' })
+config.font_size = 8
 config.color_scheme = 'Catppuccin Mocha'
 
 -- First pane: WSL home. There is no first-class "always home for new tabs" option;

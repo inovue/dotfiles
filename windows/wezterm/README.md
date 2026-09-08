@@ -21,7 +21,7 @@ WezTerm の既知バグ: Kitty keyboard 有効時、IME 確定の **1 コード�
 ## セットアップ
 
 ```bash
-./windows/wezterm/setup.sh    # lua 同期 + winget で nightly
+./windows/wezterm/setup.sh    # lua 同期 + UDEV Gothic 35NFLG + winget nightly
 ./windows/wezterm/doctor.sh
 ```
 
@@ -43,8 +43,8 @@ winget settings --enable InstallerHashOverride
 
 | ファイル | 役割 |
 | --- | --- |
-| `wezterm.lua` | → `%USERPROFILE%\.wezterm.lua` |
-| `setup.sh` / `setup.ps1` | 同期 + `winget install wez.wezterm.nightly` |
+| `wezterm.lua` | → `%USERPROFILE%\.wezterm.lua`（フォント: UDEV Gothic 35NFLG / 8pt） |
+| `setup.sh` / `setup.ps1` | 同期 + UDEV Gothic 35NFLG インストール + `winget install wez.wezterm.nightly` |
 | `doctor.sh` | 診断 |
 
 WSL の `wezterm` ラッパーは `stow/bin`（`wezterm.exe` へ）。

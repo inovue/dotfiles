@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Sync Windows WezTerm config + install nightly via winget.
+# Sync Windows WezTerm config + install UDEV Gothic 35NFLG + WezTerm nightly via winget.
 # Usage: ./windows/wezterm/setup.sh
 set -euo pipefail
 

@@ -16,7 +16,7 @@ WSL の Ansible / Stow（`ansible/`, `stow/`）とは別に、**Windows 側に�
 ## まずやること（terminal-browser 真っ黒対策）
 
 ```bash
-./windows/wezterm/setup.sh   # 設定同期 + WezTerm nightly (winget)
+./windows/wezterm/setup.sh   # 設定同期 + UDEV Gothic 35NFLG + WezTerm nightly (winget)
 ./windows/wezterm/doctor.sh
 ```
 
