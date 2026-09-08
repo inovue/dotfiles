@@ -149,7 +149,7 @@
   vars:
     installer:
       name: herdr-terminal-browser
-      pin: "{{ herdr_terminal_browser_pin }}"
+      pin: "{{ terminal_browser_pin }}"
       cmd: |
         export PATH="{{ home }}/.local/bin:$PATH"
         export TERMINAL_BROWSER_SKIP_EDITOR_SETUP=1

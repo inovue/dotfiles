@@ -1,6 +1,6 @@
 ---
 # Provisioning only — configs live in ../stow and are linked by the dotfiles role.
-- name: WSL Ubuntu CLI environment
+- name: Ubuntu CLI environment
   hosts: localhost
   connection: local
   become: false

@@ -46,11 +46,26 @@ wezterm.on('new-tab-button-click', function(window, pane, button, default_action
   return false
 end)
 
+-- WSL sibling TB (same destination as herdr → tb-split; Lua path avoids PS round-trip).
+local tb_split = act.SplitPane {
+  direction = 'Right',
+  size = { Percent = 40 },
+  command = {
+    domain = { DomainName = 'WSL:Ubuntu' },
+    args = { 'bash', '-lc', 'exec terminal-browser' },
+  },
+}
+
 config.keys = {
   { key = 'v', mods = 'CTRL', action = act.PasteFrom 'Clipboard' },
   { key = 'V', mods = 'CTRL|SHIFT', action = act.PasteFrom 'Clipboard' },
   { key = 't', mods = 'CTRL|SHIFT', action = act.SpawnCommandInNewTab(spawn_home) },
   { key = 'n', mods = 'CTRL|SHIFT', action = act.SpawnCommandInNewWindow(spawn_home) },
+  { key = 'b', mods = 'CTRL|SHIFT', action = tb_split },
+  -- Default Ctrl+Shift+W is CloseCurrentTab (kills herdr+TB together).
+  -- Close only the focused pane (TB sibling) instead.
+  { key = 'w', mods = 'CTRL|SHIFT', action = act.CloseCurrentPane { confirm = false } },
+  { key = 'w', mods = 'CTRL|SHIFT|ALT', action = act.CloseCurrentTab { confirm = true } },
 }
 
 return config

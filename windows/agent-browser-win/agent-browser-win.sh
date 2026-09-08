@@ -16,7 +16,7 @@
 
 set -euo pipefail
 
-# Resolve symlinks so ~/.local/bin/agent-browser-win still finds the repo scripts/
+# Resolve symlinks so ~/.local/bin/agent-browser-win still finds the repo package dir
 SOURCE="${BASH_SOURCE[0]}"
 while [[ -L "$SOURCE" ]]; do
   DIR="$(cd -P "$(dirname "$SOURCE")" && pwd)"

@@ -1,11 +1,11 @@
 # dotfiles
 
-WSL2 + **Ubuntu 24.04 / 26.04** 向け CLI 開発環境。
+**Ubuntu**（純 Linux 可）+ 任意で **WSL2 + Windows ホスト連携**。
 
-> Ansible = プロビジョニング、GNU Stow = 設定リンク。日常の設定変更は `stow/` を編集して `./stow.sh restow`。  
+> Ansible = Ubuntu プロビジョニング、GNU Stow = 設定リンク。Windows 連携は `windows/`。  
 > **Agents:** [AGENTS.md](AGENTS.md) · Doc index: [docs/README.md](docs/README.md)
 
-> 22.04 等は apt パッケージ名が合わず失敗する。
+> 22.04 等は apt パッケージ名が合わず失敗する。対象は Ubuntu 24.04 / 26.04。
 
 ## セットアップ
 
@@ -16,11 +16,19 @@ cd dotfiles
 exec zsh   # デフォルトシェル・PATH・zsh 反映（必須）
 ```
 
+`powershell.exe` がある（典型: WSL2）と Ubuntu 層のあと `windows/setup.sh` も自動実行。純 Ubuntu ではスキップ。
+
+```bash
+./setup.sh --ubuntu-only    # Ansible/Stow のみ
+./setup.sh --windows-only   # WezTerm + agent-browser-win のみ
+```
+
 - 詳細手順・tags・ピン・Stow: [docs/setup-stow.md](docs/setup-stow.md)
-- 構成: [docs/architecture.md](docs/architecture.md)
+- 構成・層分け: [docs/architecture.md](docs/architecture.md)
 - Bitwarden Send / SM: [docs/bws.md](docs/bws.md)（`--bws-send-url` または `BWS_SEND_URL` 可）
-- WSL → Windows Chrome: [docs/agent-browser-win.md](docs/agent-browser-win.md)（`./scripts/setup_agent_browser_win.sh`）
-- WezTerm（terminal-browser 用 nightly）: [windows/wezterm/README.md](windows/wezterm/README.md) — `./windows/wezterm/setup.sh`
+- Windows 層: [windows/README.md](windows/README.md)
+- WSL → Windows Chrome: [docs/agent-browser-win.md](docs/agent-browser-win.md)
+- WezTerm（terminal-browser 用 nightly）: [windows/wezterm/README.md](windows/wezterm/README.md)
 - herdr + プラグイン: [docs/herdr.md](docs/herdr.md)
 
 Git デフォルト: `user.name` = 実行ユーザー、`user.email` = `{user}@users.noreply.github.com`。上書き例:
@@ -48,7 +56,8 @@ npx hyperframes doctor
 | 症状 | 先に見る場所 |
 | --- | --- |
 | apt / become / Stow 衝突 / ピン更新 | [docs/setup-stow.md](docs/setup-stow.md) |
-| terminal-browser 真っ黒 | [windows/wezterm/README.md](windows/wezterm/README.md) |
+| terminal-browser 真っ黒（WSL） | [windows/wezterm/README.md](windows/wezterm/README.md) |
+| terminal-browser 遅い（WSL RAM / ネスト禁止） | [windows/wsl/README.md](windows/wsl/README.md) · [docs/herdr.md](docs/herdr.md) |
 | herdr / hunk / TB キー | [docs/herdr.md](docs/herdr.md) |
 | ログイン済みサイト自動化 | [docs/agent-browser-win.md](docs/agent-browser-win.md) |
 | ブラウザが開かない（`BROWSER`） | WSL interop + `cmd.exe` on PATH（`wsl-browser`） |

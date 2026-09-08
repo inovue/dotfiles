@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+# WSL-only CLI: open terminal-browser in a WezTerm sibling pane.
+# Implementation lives under windows/wezterm/ (Windows host concern).
+set -euo pipefail
+ROOT="$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")/../../../.." && pwd)"
+exec "$ROOT/windows/wezterm/tb-split.sh" "$@"

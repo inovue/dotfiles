@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 # Install / refresh WSL→Windows agent-browser bridge for Cursor.
-# Idempotent. Intended to run from setup.sh on WSL2 + Windows 11.
+# Idempotent. Part of windows/setup.sh (WSL2 + Windows 11).
 set -euo pipefail
 
-ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-SCRIPT_DIR="$ROOT_DIR/scripts"
+PKG_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ROOT_DIR="$(cd "$PKG_DIR/../.." && pwd)"
 SKILL_SRC="$ROOT_DIR/skills/agent-browser-win"
 
 log() { echo "==> $*"; }
@@ -29,14 +29,14 @@ fi
 
 WIN_HELPER_DIR_WSL="$(wslpath "$LOCALAPPDATA_WIN")/agent-browser-win"
 mkdir -p "$WIN_HELPER_DIR_WSL"
-cp -f "$SCRIPT_DIR/agent-browser-win.ps1" "$WIN_HELPER_DIR_WSL/agent-browser-win.ps1"
+cp -f "$PKG_DIR/agent-browser-win.ps1" "$WIN_HELPER_DIR_WSL/agent-browser-win.ps1"
 log "Synced helper to $WIN_HELPER_DIR_WSL"
 
 # Install wrapper on WSL PATH
 BIN_DIR="${HOME}/.local/bin"
 mkdir -p "$BIN_DIR"
-ln -sfn "$SCRIPT_DIR/agent-browser-win.sh" "$BIN_DIR/agent-browser-win"
-chmod +x "$SCRIPT_DIR/agent-browser-win.sh"
+ln -sfn "$PKG_DIR/agent-browser-win.sh" "$BIN_DIR/agent-browser-win"
+chmod +x "$PKG_DIR/agent-browser-win.sh"
 log "Linked $BIN_DIR/agent-browser-win"
 
 # Install Cursor / agent skills (personal, cross-repo)
@@ -59,7 +59,7 @@ fi
 # Ensure Windows Node + agent-browser
 log "Ensuring Windows Node.js / agent-browser..."
 # Copy to Windows-local path to avoid UNC cwd issues
-cp -f "$SCRIPT_DIR/setup_agent_browser_win.ps1" "$WIN_HELPER_DIR_WSL/setup_agent_browser_win.ps1"
+cp -f "$PKG_DIR/setup.ps1" "$WIN_HELPER_DIR_WSL/setup_agent_browser_win.ps1"
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$(wslpath -w "$WIN_HELPER_DIR_WSL/setup_agent_browser_win.ps1")"
 
 log "Windows agent-browser ready"

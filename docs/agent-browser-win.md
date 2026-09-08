@@ -16,10 +16,13 @@
 
 ## セットアップ
 
-dotfiles の `./setup.sh` が自動で行う（または単体実行）:
+dotfiles の `./setup.sh` が WSL 検出時に `windows/setup.sh` 経由で自動実行する（または単体）:
 
 ```bash
-./scripts/setup_agent_browser_win.sh
+./windows/agent-browser-win/setup.sh
+# または Windows 層まとめて:
+./windows/setup.sh
+./setup.sh --windows-only
 ```
 
 実施内容:
@@ -80,7 +83,8 @@ Skill: `agent-browser-win`（セットアップでインストール）。
 |------|------|
 | `powershell.exe not found` | WSL interop を有効化 |
 | `chrome: NOT FOUND` | Windows に Google Chrome を入れる |
-| `agent-browser: NOT FOUND` | `./scripts/setup_agent_browser_win.sh` 再実行 |
+| `agent-browser: NOT FOUND` | `./windows/agent-browser-win/setup.sh` 再実行 |
+| `npm.cmd` / `\\wsl.localhost\...` エラー | WSL cwd が UNC のまま。setup PS1 は `%USERPROFILE%` へ `cd` する（再実行で解消） |
 | `Daemon version mismatch` / ハング | `agent-browser-win stop` 後に `start`。`AGENT_BROWSER_SESSION` が Linux 実験用の値なら unset。ダメなら `%USERPROFILE%\.agent-browser` の該当セッションファイルを削除 |
 | CDP down | `agent-browser-win start` |
 | `CDP is up but owned by ...` / FOREIGN | 別プロセスがポートを占有。`AGENT_BROWSER_WIN_CDP_PORT` を空きポートに変更 |
@@ -98,9 +102,10 @@ Skill: `agent-browser-win`（セットアップでインストール）。
 
 ## 関連ファイル
 
-- `scripts/agent-browser-win.sh` — WSL 入口
-- `scripts/agent-browser-win.ps1` — Windows 実装
-- `scripts/setup_agent_browser_win.sh` — セットアップ
+- `windows/agent-browser-win/agent-browser-win.sh` — WSL 入口
+- `windows/agent-browser-win/agent-browser-win.ps1` — Windows 実装
+- `windows/agent-browser-win/setup.sh` — セットアップ
+- `windows/setup.sh` — Windows+WSL 層の一括入口
 - `skills/agent-browser-win/SKILL.md` — Cursor skill ソース
 
 ## Maintainer notes（実装の安定化）

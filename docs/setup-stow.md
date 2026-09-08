@@ -14,7 +14,8 @@ exec zsh                     # required: shell + PATH
 
 Optional: `./setup.sh --bws-send-url 'https://send.bitwarden.com/#…'` — see [bws.md](bws.md).
 
-On WSL, setup also runs `./scripts/setup_agent_browser_win.sh` when `powershell.exe` exists.
+On WSL (`powershell.exe` present), setup also runs `./windows/setup.sh` (`.wslconfig` + agent-browser-win + WezTerm).  
+Overrides: `--ubuntu-only` / `--windows-only` — see [architecture.md](architecture.md).
 
 ## Partial runs
 
@@ -23,6 +24,8 @@ On WSL, setup also runs `./scripts/setup_agent_browser_win.sh` when `powershell.
 ./setup.sh --tags dotfiles
 ./setup.sh --tags herdr
 ./setup.sh --tags terminal-browser
+./setup.sh --ubuntu-only --tags dotfiles
+./setup.sh --windows-only
 ```
 
 Manual playbook:

@@ -82,14 +82,75 @@ fi
 
 HERDR_CFG="${HERDR_CONFIG_PATH:-$HOME/.config/herdr/config.toml}"
 if [[ -f "$HERDR_CFG" ]] && rg -q 'kitty_graphics\s*=\s*true' "$HERDR_CFG"; then
-  ok "herdr experimental.kitty_graphics = true"
+  ok "herdr kitty_graphics = true"
 else
-  warn "herdr kitty_graphics not enabled (only needed inside herdr panes)"
+  warn "herdr kitty_graphics not enabled"
+fi
+
+if command -v tb-split >/dev/null 2>&1; then
+  ok "tb-split on PATH (WSL sibling TB)"
+else
+  warn "tb-split not on PATH — ./stow.sh restow bin"
+fi
+
+# WSL PTY cell pixels: herdr needs ioctl exact geometry for nested TB.
+if python3 - <<'PY' 2>/dev/null
+import fcntl, struct, termios, sys
+try:
+  rows, cols, xpix, ypix = struct.unpack("HHHH", fcntl.ioctl(1, termios.TIOCGWINSZ, b"\0"*8))
+except Exception:
+  sys.exit(2)
+sys.exit(0 if xpix > 0 and ypix > 0 else 1)
+PY
+then
+  ok "TTY reports cell pixels (nested herdr TB may get direct-kitty)"
+else
+  warn "TTY cell pixels are 0 (normal on WSL). Nested herdr TB will be slow / miss toolbar clicks."
+  echo "    Use Ctrl+B Shift+B → tb-split (WezTerm sibling)."
+fi
+
+if command -v herdr >/dev/null 2>&1 && herdr status >/dev/null 2>&1; then
+  INFO="$(python3 - <<'PY' 2>/dev/null
+import json, socket, subprocess
+from pathlib import Path
+try:
+  snap = json.loads(subprocess.check_output(["herdr", "api", "snapshot"], text=True))
+  focused = snap["result"]["snapshot"]["focused_pane_id"]
+  sock = str(Path.home() / ".config/herdr/herdr.sock")
+  s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+  s.settimeout(2)
+  s.connect(sock)
+  s.sendall((json.dumps({"id":"1","method":"pane.graphics.info","params":{"pane_id":focused}})+"\n").encode())
+  buf = b""
+  while b"\n" not in buf:
+    buf += s.recv(65536)
+  s.close()
+  r = json.loads(buf.split(b"\n",1)[0]).get("result") or {}
+  print(r.get("file_frame_transport") or "none", r.get("pixel_mouse"), r.get("cell_width_px"), r.get("cell_height_px"))
+except Exception as e:
+  print("error", e)
+PY
+)"
+  transport="$(echo "$INFO" | awk '{print $1}')"
+  if [[ "$transport" == "direct-kitty" ]]; then
+    ok "herdr pane.graphics: file_frame_transport=direct-kitty"
+  else
+    warn "herdr pane.graphics: no direct-kitty ($INFO) — nested TB falls back to slow PTY path"
+  fi
+fi
+
+if [[ -r /proc/meminfo ]]; then
+  MEM_MIB="$(awk '/MemTotal:/ {printf "%d", $2/1024}' /proc/meminfo)"
+  if [[ "$MEM_MIB" -ge 7000 ]]; then
+    ok "WSL MemTotal ${MEM_MIB}MiB (≥7GiB headroom)"
+  else
+    bad "WSL MemTotal only ${MEM_MIB}MiB — apply .wslconfig then wsl --shutdown (see windows/wsl/README.md)"
+  fi
 fi
 
 echo
 if [[ "$FAIL" -ne 0 ]]; then
-  echo "Doctor found problems. See windows/wezterm/README.md"
+  echo "Doctor found problems. See windows/wezterm/README.md and docs/herdr.md"
   exit 1
 fi
-echo "Doctor OK. Use a WezTerm window (not WT/Cursor) and reopen after upgrades."
+echo "Doctor OK. Prefer WezTerm sibling TB (Ctrl+B Shift+B / Ctrl+Shift+B) on WSL."

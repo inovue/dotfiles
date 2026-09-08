@@ -3,7 +3,8 @@
 # Exit non-zero on first hard failure. Soft warnings printed but counted.
 set -euo pipefail
 
-ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+PKG_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ROOT="$(cd "$PKG_DIR/../.." && pwd)"
 PASS=0
 FAIL=0
 WARN=0
@@ -23,7 +24,7 @@ run_to() {
 }
 
 AB="${HOME}/.local/bin/agent-browser-win"
-[[ -x "$AB" ]] || AB="$ROOT/scripts/agent-browser-win.sh"
+[[ -x "$AB" ]] || AB="$PKG_DIR/agent-browser-win.sh"
 
 win_env() {
   powershell.exe -NoProfile -Command "[Console]::Out.Write([Environment]::GetEnvironmentVariable('$1','Process'))" 2>/dev/null | tr -d '\r'
@@ -38,17 +39,17 @@ echo "==== 0. Preconditions ===="
 command -v powershell.exe >/dev/null && ok "powershell.exe present" || bad "powershell.exe missing"
 command -v python3 >/dev/null && ok "python3 present" || bad "python3 missing"
 [[ -n "$LOCALAPPDATA_WIN" ]] && ok "LOCALAPPDATA=$LOCALAPPDATA_WIN" || bad "LOCALAPPDATA empty"
-[[ -f "$ROOT/scripts/agent-browser-win.sh" ]] && ok "repo sh present" || bad "repo sh missing"
-[[ -f "$ROOT/scripts/agent-browser-win.ps1" ]] && ok "repo ps1 present" || bad "repo ps1 missing"
+[[ -f "$PKG_DIR/agent-browser-win.sh" ]] && ok "repo sh present" || bad "repo sh missing"
+[[ -f "$PKG_DIR/agent-browser-win.ps1" ]] && ok "repo ps1 present" || bad "repo ps1 missing"
 [[ -f "$ROOT/skills/agent-browser-win/SKILL.md" ]] && ok "skill source present" || bad "skill source missing"
 [[ -f "$ROOT/docs/agent-browser-win.md" ]] && ok "docs present" || bad "docs missing"
 
 echo "==== 1. No hardcoded username paths in scripts ===="
 if rg -n "Users\\\\inovu|Users/inovu|/home/inovue" \
-  "$ROOT/scripts/agent-browser-win.sh" \
-  "$ROOT/scripts/agent-browser-win.ps1" \
-  "$ROOT/scripts/setup_agent_browser_win.sh" \
-  "$ROOT/scripts/setup_agent_browser_win.ps1" \
+  "$PKG_DIR/agent-browser-win.sh" \
+  "$PKG_DIR/agent-browser-win.ps1" \
+  "$PKG_DIR/setup.sh" \
+  "$PKG_DIR/setup.ps1" \
   "$ROOT/skills/agent-browser-win/SKILL.md" 2>/dev/null; then
   bad "hardcoded user path found"
 else
@@ -60,8 +61,8 @@ if [[ -L "${HOME}/.local/bin/agent-browser-win" || -x "${HOME}/.local/bin/agent-
   ok "~/.local/bin/agent-browser-win exists"
   # Ensure symlink resolves to repo script
   resolved="$(readlink -f "${HOME}/.local/bin/agent-browser-win" 2>/dev/null || true)"
-  if [[ -n "$resolved" && "$resolved" == *"/scripts/agent-browser-win.sh" ]]; then
-    ok "symlink resolves to scripts/agent-browser-win.sh"
+  if [[ -n "$resolved" && "$resolved" == *"/windows/agent-browser-win/agent-browser-win.sh" ]]; then
+    ok "symlink resolves to windows/agent-browser-win/agent-browser-win.sh"
   else
     soft "symlink resolve unexpected: $resolved"
   fi
@@ -70,8 +71,8 @@ else
 fi
 
 echo "==== 3. Idempotent setup (x2) ===="
-bash "$ROOT/scripts/setup_agent_browser_win.sh" >/tmp/abw-setup1.txt 2>&1 && ok "setup run #1" || { bad "setup run #1"; sed -n '1,80p' /tmp/abw-setup1.txt; }
-bash "$ROOT/scripts/setup_agent_browser_win.sh" >/tmp/abw-setup2.txt 2>&1 && ok "setup run #2 (idempotent)" || { bad "setup run #2"; sed -n '1,80p' /tmp/abw-setup2.txt; }
+bash "$PKG_DIR/setup.sh" >/tmp/abw-setup1.txt 2>&1 && ok "setup run #1" || { bad "setup run #1"; sed -n '1,80p' /tmp/abw-setup1.txt; }
+bash "$PKG_DIR/setup.sh" >/tmp/abw-setup2.txt 2>&1 && ok "setup run #2 (idempotent)" || { bad "setup run #2"; sed -n '1,80p' /tmp/abw-setup2.txt; }
 
 [[ -f "$HELPER_WSL/agent-browser-win.ps1" ]] && ok "Windows helper synced" || bad "Windows helper missing"
 [[ -f "${HOME}/.cursor/skills/agent-browser-win/SKILL.md" ]] && ok "cursor skill installed" || bad "cursor skill missing"

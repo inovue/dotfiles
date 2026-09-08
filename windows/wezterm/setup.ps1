@@ -38,7 +38,6 @@ function Install-UdevGothic35Nflg {
     New-Item -ItemType Directory -Path $fontDir -Force | Out-Null
     $regKey = 'HKCU:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Fonts'
 
-    # 35 + NF + LG family (WezTerm: "UDEV Gothic 35NFLG")
     $fonts = Get-ChildItem -Path $tmp -Recurse -File -Filter 'UDEVGothic35NFLG-*.ttf'
     if (-not $fonts) {
       throw 'No UDEVGothic35NFLG-*.ttf found in zip'
@@ -57,14 +56,6 @@ function Install-UdevGothic35Nflg {
   }
 }
 
-Install-UdevGothic35Nflg
-
-Write-Host '==> winget install wez.wezterm.nightly'
-winget install --id wez.wezterm.nightly -e `
-  --accept-package-agreements --accept-source-agreements `
-  --disable-interactivity --silent
-$wingetCode = $LASTEXITCODE
-
 function Get-WezTermExe {
   $cmd = Get-Command wezterm.exe -ErrorAction SilentlyContinue
   if ($cmd) { return $cmd.Source }
@@ -73,24 +64,46 @@ function Get-WezTermExe {
   return $null
 }
 
-$exe = Get-WezTermExe
-if (-not $exe) {
-  Write-Host @'
-wezterm.exe not found. If winget complained about installer hash, run once as admin:
+function Test-WezTermOk {
+  $exe = Get-WezTermExe
+  if (-not $exe) { return $false }
+  $ver = & $exe --version 2>$null
+  if (-not $ver) { return $false }
+  # 20240203 stable is too old for Kitty graphics on Windows
+  return ("$ver" -notmatch '20240203')
+}
 
+Install-UdevGothic35Nflg
+
+if (Test-WezTermOk) {
+  Write-Host ("==> WezTerm ok: " + (& (Get-WezTermExe) --version))
+  Write-Host '==> Fully quit and reopen WezTerm if config just changed.'
+  exit 0
+}
+
+# Nightly vanity URL drifts from the winget manifest hash → always ignore hash.
+# Requires one-time admin: winget settings --enable InstallerHashOverride
+Write-Host '==> winget install wez.wezterm.nightly'
+$wingetOut = & winget install --id wez.wezterm.nightly -e `
+  --accept-package-agreements --accept-source-agreements `
+  --disable-interactivity --silent `
+  --ignore-security-hash 2>&1 | Out-String
+Write-Host $wingetOut
+$wingetCode = [int]$LASTEXITCODE
+
+$exe = Get-WezTermExe
+if (-not $exe -or -not (Test-WezTermOk)) {
+  Write-Host @"
+winget nightly failed (exit $wingetCode). Nightly hash drifts often.
+
+Admin PowerShell once:
   winget settings --enable InstallerHashOverride
 
-Then re-run this script.
-'@
+Then re-run (non-admin):
+  ./windows/wezterm/setup.sh
+"@
   exit 1
 }
 
-$ver = & $exe --version
-Write-Host "==> $ver"
-if ("$ver" -match '20240203') {
-  Write-Host 'Still on 20240203 stable. Install nightly failed (winget exit '"$wingetCode"').'
-  Write-Host 'Admin once: winget settings --enable InstallerHashOverride'
-  exit 1
-}
-
+Write-Host ("==> " + (& $exe --version))
 Write-Host '==> Fully quit and reopen WezTerm.'

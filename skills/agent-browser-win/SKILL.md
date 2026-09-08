@@ -28,7 +28,7 @@ agent-browser-win status|doctor
 Broken / missing install (from this repo):
 
 ```bash
-./scripts/setup_agent_browser_win.sh
+./windows/agent-browser-win/setup.sh
 ```
 
 Deep docs / env / troubleshooting: `docs/agent-browser-win.md`.

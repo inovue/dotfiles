@@ -1,0 +1,10 @@
+# Managed by inovue/dotfiles (windows/wsl).
+# Applied to %USERPROFILE%\.wslconfig by ./windows/wsl/setup.sh
+# After change: from Windows PowerShell → wsl --shutdown  then reopen WezTerm.
+#
+# Values below are the floor defaults. setup.ps1 may raise memory/processors
+# from host RAM/CPU (e.g. 16GB host → memory=8GB, processors=8).
+
+[wsl2]
+memory=8GB
+processors=8

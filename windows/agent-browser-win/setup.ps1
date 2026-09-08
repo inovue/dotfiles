@@ -2,6 +2,10 @@
 # Install / refresh Windows-side agent-browser for the WSL bridge.
 $ErrorActionPreference = "Stop"
 
+# WSL-launched powershell.exe inherits UNC cwd (\\wsl.localhost\...), which
+# breaks npm.cmd / cmd.exe. Move to a Windows-local path first.
+Set-Location $env:USERPROFILE
+
 function Add-UserPath([string]$dir) {
   if (-not $dir -or -not (Test-Path $dir)) { return }
   $userPath = [Environment]::GetEnvironmentVariable("Path", "User")

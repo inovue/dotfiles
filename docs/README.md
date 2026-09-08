@@ -15,5 +15,6 @@ Related (outside `docs/`):
 | Path | When to open |
 | --- | --- |
 | [../windows/README.md](../windows/README.md) | Windows host config index |
+| [../windows/wsl/README.md](../windows/wsl/README.md) | `.wslconfig` RAM/CPU for TB + agents |
 | [../windows/wezterm/README.md](../windows/wezterm/README.md) | WezTerm / Kitty graphics / JP IME (SSOT) |
 | [../skills/](../skills/) | Cursor skills shipped with this repo |

@@ -494,7 +494,7 @@ function Invoke-NativeAgentBrowser {
 function Invoke-AgentBrowser([string[]]$BrowserArgs) {
   $exe = Get-AgentBrowserExe
   if (-not $exe) {
-    throw "agent-browser exe not found. Run: scripts/setup_agent_browser_win.sh (or npm i -g agent-browser on Windows)"
+    throw "agent-browser exe not found. Run: windows/agent-browser-win/setup.sh (or npm i -g agent-browser on Windows)"
   }
   if (-not (Test-OurCdp)) {
     $owner = Get-CdpOwnerInfo
