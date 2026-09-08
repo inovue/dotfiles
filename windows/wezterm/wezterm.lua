@@ -6,13 +6,14 @@ local wezterm = require 'wezterm'
 local act = wezterm.action
 local config = wezterm.config_builder()
 
--- Kitty protocols: required for terminal-browser / herdr graphics panes
+-- Kitty protocols: graphics for terminal-browser.
+-- keyboard OFF: with herdr, IME 1-char Composed commits are dropped
+-- (wezterm#7944, unmerged). Re-enable after that lands in nightly.
 config.enable_kitty_graphics = true
-config.enable_kitty_keyboard = true
+config.enable_kitty_keyboard = false
 
 config.max_fps = 120
 config.prefer_egl = true
-config.window_background_opacity = 0.8
 config.font = wezterm.font_with_fallback({ 'HackGen Console NF' })
 config.color_scheme = 'Catppuccin Mocha'
 

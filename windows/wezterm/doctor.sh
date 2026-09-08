@@ -51,10 +51,13 @@ if [[ -f "$LUA" ]]; then
   else
     bad "enable_kitty_graphics missing/false in $LUA"
   fi
-  if rg -q 'enable_kitty_keyboard\s*=\s*true' "$LUA"; then
-    ok "enable_kitty_keyboard = true"
+  # false until wezterm#7944 (IME 1-char drop with herdr)
+  if rg -q 'enable_kitty_keyboard\s*=\s*false' "$LUA"; then
+    ok "enable_kitty_keyboard = false (IME workaround for wezterm#7944)"
+  elif rg -q 'enable_kitty_keyboard\s*=\s*true' "$LUA"; then
+    warn "enable_kitty_keyboard = true — JP 1-char IME may drop until wezterm#7944"
   else
-    bad "enable_kitty_keyboard missing/false in $LUA"
+    warn "enable_kitty_keyboard not set in $LUA"
   fi
 else
   bad "Missing Windows ~/.wezterm.lua — run ./windows/wezterm/setup.sh"

@@ -1,3 +1,4 @@
+onboarding = false
 # Docs: https://herdr.dev/docs/configuration/
 # hunk-diff keys: https://github.com/jhochenbaum/herdr-hunk-diff
 # terminal-browser plugin: https://github.com/zenbu-labs/terminal-browser/tree/main/herdr-plugin
@@ -8,6 +9,9 @@ name = "catppuccin"
 [ui]
 mouse_capture = true
 copy_on_select = true
+# WSL/Windows: drawn cursor hides the OS IME anchor → JP/CJK composition breaks.
+# https://herdr.dev/docs/troubleshooting/
+host_cursor = "native"
 
 [keys]
 [[keys.command]]
@@ -50,3 +54,6 @@ height = "90%"
 
 [experimental]
 kitty_graphics = true
+# TUIs that hide the cursor (Claude Code etc.) otherwise leave IME candidates stranded.
+reveal_hidden_cursor_for_cjk_ime = true
+cjk_ime_cursor_shape = "bar"
