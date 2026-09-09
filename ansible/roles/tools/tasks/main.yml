@@ -130,6 +130,15 @@
   loop_control:
     loop_var: installer
 
+# After herdr install.sh replaces ~/.local/bin/herdr, a still-running server keeps
+# the deleted inode → hunk / nested TB fail (ENOENT / no pane id). Prefer live-handoff.
+- name: Handoff herdr server onto current binary when stale
+  ansible.builtin.command: "{{ dotfiles_root }}/scripts/herdr_handoff_if_stale.sh"
+  register: herdr_handoff
+  changed_when: (herdr_handoff.stdout | trim) in ['handed_off', 'stopped']
+  failed_when: herdr_handoff.rc != 0
+  tags: [herdr]
+
 - name: Install or refresh herdr-hunk-diff plugin
   ansible.builtin.include_tasks:
     file: "{{ playbook_dir }}/tasks/curl_installer.yml"

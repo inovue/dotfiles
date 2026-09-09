@@ -104,6 +104,7 @@ terminal-browser action done
 | `Shift+B` 無反応（WSL） | `./stow.sh restow bin`、`tb-split` on PATH |
 | Native で plugin 失敗 | `./setup.sh --tags terminal-browser` |
 | 設定が効かない | `./stow.sh restow herdr` → `herdr server reload-config` |
+| hunk / TB が開かない（`herdr (deleted)`） | setup が stale server を handoff。手動なら `herdr server live-handoff` または `scripts/herdr_handoff_if_stale.sh` |
 
 ```bash
 ./setup.sh --tags herdr

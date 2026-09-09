@@ -38,3 +38,4 @@ Human onboarding: [README.md](README.md). Doc index: [docs/README.md](docs/READM
 - Pins / `stow_packages` → `ansible/group_vars/all.yml` → `./setup.sh --tags …`
 - Ubuntu installers → `scripts/`; Windows+WSL → `windows/`（`scripts/` に Win shim を置かない）
 - After herdr config change → `herdr server reload-config`
+- After herdr binary refresh → setup runs `scripts/herdr_handoff_if_stale.sh` (stale/`deleted` server → live-handoff)
