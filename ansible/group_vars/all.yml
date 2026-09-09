@@ -26,6 +26,7 @@ pnpm_pin: "11.25.0"
 bun_pin: "1.4.2"
 genmedia_pin: "0.7.0"
 cursor_agent_pin: "2026.09.02-c22c1a3"
+rtk_pin: "0.48.0"
 
 # GNU Stow packages under stow/ (one app each; mirrors $HOME)
 stow_packages:

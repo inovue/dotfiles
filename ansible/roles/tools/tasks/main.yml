@@ -113,6 +113,12 @@
     - name: cursor-agent
       pin: "{{ cursor_agent_pin }}"
       cmd: curl -fsSL https://cursor.com/install | bash
+    - name: rtk
+      pin: "{{ rtk_pin }}"
+      cmd: |
+        export PATH="{{ home }}/.local/bin:$PATH"
+        export RTK_PIN="{{ rtk_pin }}"
+        bash "{{ dotfiles_root }}/scripts/setup_rtk.sh"
     - name: genmedia
       pin: "{{ genmedia_pin }}"
       cmd: |

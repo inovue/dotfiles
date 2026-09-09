@@ -73,6 +73,7 @@ If Stow refuses because a real file already exists, move/remove the conflict the
 | Fly | `fly auth login` |
 | Modal | `modal token new` |
 | Cursor CLI | `agent login` |
+| RTK (Cursor global) | `./scripts/setup_rtk.sh` or `./setup.sh --tags tools` — then restart Cursor CLI |
 | Bitwarden SM | [bws.md](bws.md) |
 | agent-browser-win | [agent-browser-win.md](agent-browser-win.md) — `start` then log in once |
 | genmedia | `FAL_KEY` in SM, then `genmedia` |
