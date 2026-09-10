@@ -158,6 +158,18 @@
         herdr plugin install jhochenbaum/herdr-hunk-diff -y
   tags: [herdr]
 
+- name: Install or refresh herdr-file-viewer plugin
+  ansible.builtin.include_tasks:
+    file: "{{ playbook_dir }}/tasks/curl_installer.yml"
+  vars:
+    installer:
+      name: herdr-file-viewer
+      pin: "{{ herdr_file_viewer_pin }}"
+      cmd: |
+        export PATH="{{ home }}/.local/bin:$PATH"
+        herdr plugin install smarzban/herdr-file-viewer --ref "v{{ herdr_file_viewer_pin }}" -y
+  tags: [herdr]
+
 - name: Install or refresh herdr terminal-browser plugin
   ansible.builtin.include_tasks:
     file: "{{ playbook_dir }}/tasks/curl_installer.yml"

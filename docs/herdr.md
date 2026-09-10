@@ -19,7 +19,7 @@ WezTerm（WSL）: [windows/wezterm/README.md](../windows/wezterm/README.md)
 | `stow/herdr/.config/herdr/config.toml` | 本体・キー |
 | `stow/bin/.../terminal-browser-open` | `Ctrl+B` `Shift+B` ルーター |
 | `stow/bin/.../tb-split` | WSL → `windows/wezterm/tb-split.sh` |
-| Ansible `tools` | herdr / hunk-diff / terminal-browser CLI + plugins |
+| Ansible `tools` | herdr / hunk-diff / file-viewer / terminal-browser CLI + plugins |
 
 ```bash
 ./stow.sh restow herdr bin
@@ -31,6 +31,7 @@ herdr server reload-config
 | キー | 動作 |
 | --- | --- |
 | `Shift+H` / `S` / `C` / `A` | hunk review / send / commit / staged |
+| `f` / `Shift+F` | file viewer（split / tab） |
 | `Shift+B` | terminal-browser（下表） |
 | `Alt+G` | lazygit |
 | WezTerm `Ctrl+Shift+B` | WSL: 兄弟ペイン（herdr 外） |
@@ -68,6 +69,18 @@ watch = true
 ```
 
 worktree 共有時は送りたい agent にフォーカスしてから review／send。完全分離は別 worktree。
+
+---
+
+## Plugin: file-viewer
+
+公式: [smarzban/herdr-file-viewer](https://github.com/smarzban/herdr-file-viewer)
+
+`Ctrl+B` `f` → split、`Ctrl+B` `Shift+F` → tab。git 状態付きツリー＋diff / markdown / シンタックスハイライト（`glow` / `delta` / `bat`）。
+
+```bash
+./setup.sh --tags herdr
+```
 
 ---
 

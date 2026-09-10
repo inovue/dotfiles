@@ -15,7 +15,7 @@ Human onboarding: [README.md](README.md). Doc index: [docs/README.md](docs/READM
 | --- | --- |
 | Layout / Ansible vs Stow vs `windows/` | [docs/architecture.md](docs/architecture.md) |
 | `setup.sh` / tags / pins / adding a stow pkg | [docs/setup-stow.md](docs/setup-stow.md) |
-| herdr, hunk-diff, terminal-browser | [docs/herdr.md](docs/herdr.md) |
+| herdr, hunk-diff, file-viewer, terminal-browser | [docs/herdr.md](docs/herdr.md) |
 | WezTerm (WSL), TB black screen, JP IME | [windows/wezterm/README.md](windows/wezterm/README.md) |
 | TB slow on WSL (RAM) | [windows/wsl/README.md](windows/wsl/README.md) |
 | Secrets / FAL_KEY / `bws run` | [docs/bws.md](docs/bws.md) (developer section) |

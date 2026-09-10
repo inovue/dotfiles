@@ -1,6 +1,7 @@
 onboarding = false
 # Docs: https://herdr.dev/docs/configuration/
 # hunk-diff: https://github.com/jhochenbaum/herdr-hunk-diff
+# file-viewer: https://github.com/smarzban/herdr-file-viewer
 # terminal-browser: Ctrl+B Shift+B → terminal-browser-open
 #   native → herdr plugin open-split | WSL → tb-split (windows/wezterm/)
 
@@ -43,6 +44,18 @@ key = "prefix+shift+b"
 type = "shell"
 command = "terminal-browser-open"
 description = "terminal-browser"
+
+[[keys.command]]
+key = "prefix+f"
+type = "plugin_action"
+command = "herdr-file-viewer.open-file-viewer"
+description = "file viewer (split)"
+
+[[keys.command]]
+key = "prefix+shift+f"
+type = "plugin_action"
+command = "herdr-file-viewer.open-file-viewer-tab"
+description = "file viewer (tab)"
 
 [[keys.command]]
 key = "prefix+alt+g"

@@ -6,7 +6,7 @@ Agent / human deep docs. Short map: [../AGENTS.md](../AGENTS.md). Human setup: [
 | --- | --- |
 | [architecture.md](architecture.md) | Where code/config lives (Ansible / Stow / windows / skills) |
 | [setup-stow.md](setup-stow.md) | Bootstrap, tags, pins, add/restow packages |
-| [herdr.md](herdr.md) | herdr keys, hunk-diff, terminal-browser plugin usage |
+| [herdr.md](herdr.md) | herdr keys, hunk-diff, file-viewer, terminal-browser plugin usage |
 | [bws.md](bws.md) | Bitwarden SM, tokens, `bws run` |
 | [agent-browser-win.md](agent-browser-win.md) | WSL → Windows Chrome CDP bridge |
 
