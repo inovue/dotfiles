@@ -106,7 +106,7 @@ then
   ok "TTY reports cell pixels (nested herdr TB may get direct-kitty)"
 else
   warn "TTY cell pixels are 0 (normal on WSL). Nested herdr TB will be slow / miss toolbar clicks."
-  echo "    Use Ctrl+B Shift+B → tb-split (WezTerm sibling)."
+  echo "    Use Ctrl+Alt+I → tb-split (WezTerm sibling)."
 fi
 
 if command -v herdr >/dev/null 2>&1 && herdr status >/dev/null 2>&1; then
@@ -153,4 +153,4 @@ if [[ "$FAIL" -ne 0 ]]; then
   echo "Doctor found problems. See windows/wezterm/README.md and docs/herdr.md"
   exit 1
 fi
-echo "Doctor OK. Prefer WezTerm sibling TB (Ctrl+B Shift+B / Ctrl+Shift+B) on WSL."
+echo "Doctor OK. Prefer WezTerm sibling TB (Ctrl+Alt+I / Ctrl+Shift+B) on WSL."

@@ -28,8 +28,8 @@ Human onboarding: [README.md](README.md). Doc index: [docs/README.md](docs/READM
 
 | Goal | Tool |
 | --- | --- |
-| TB on **native Ubuntu** | `Ctrl+B` `Shift+B` → herdr 公式ネスト |
-| TB on **WSL** | `Ctrl+B` `Shift+B` / `tb-split` → WezTerm 兄弟ペイン（ネスト禁止） |
+| TB on **native Ubuntu** | `Ctrl+Alt+I` → herdr 公式ネスト |
+| TB on **WSL** | `Ctrl+Alt+I` / `tb-split` → WezTerm 兄弟ペイン（ネスト禁止） |
 | Linux automation | `agent-browser` |
 | Win login (Gmail / SSO) | `agent-browser-win` only |
 

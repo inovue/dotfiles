@@ -1,9 +1,18 @@
 onboarding = false
 # Docs: https://herdr.dev/docs/configuration/
-# hunk-diff: https://github.com/jhochenbaum/herdr-hunk-diff
-# file-viewer: https://github.com/smarzban/herdr-file-viewer
-# terminal-browser: Ctrl+B Shift+B → terminal-browser-open
-#   native → herdr plugin open-split | WSL → tb-split (windows/wezterm/)
+# Prefix-free: https://herdr.dev/ja/docs/keyboard/#プレフィックスなしで運用する
+# hunk-diff / file-viewer / terminal-browser: see docs/herdr.md
+#
+# === WezTerm (this host) key reality ===
+# enable_kitty_keyboard = false (IME / wezterm#7944):
+#   ✓ ctrl+alt+letter     ✗ ctrl+alt+shift+letter (Shift drops)
+#   ✗ ctrl+alt+digit / ?  WezTerm CTRL|ALT+"/% / arrows: disabled in wezterm.lua
+# Direct binds = bare ctrl+alt only; rarer / Shift actions → prefix.
+#
+# === Intuition axis: VS Code metaphors under Ctrl+Alt ===
+#   B sidebar, , settings, P goto(≈Ctrl+P), G git, F files, \ split(≈Ctrl+\),
+#   W close pane(≈Ctrl+W), N new tab(≈Ctrl+N), Z zoom/zen, S keybindings help
+# hjkl = pane focus (terminal-native; VS Code has no good letter chord here)
 
 [theme]
 name = "catppuccin"
@@ -11,21 +20,100 @@ name = "catppuccin"
 [ui]
 mouse_capture = true
 copy_on_select = true
-# Drawn cursor hides the OS IME anchor → JP/CJK composition breaks (esp. WSL/Windows).
 host_cursor = "native"
 
 [keys]
+prefix = "ctrl+b"
+
+# --- meta ---
+help = ["prefix+?", "ctrl+alt+s"]                 # VS Code: Ctrl+K Ctrl+S (Keyboard Shortcuts)
+settings = ["prefix+s", "ctrl+alt+,"]             # VS Code: Ctrl+,
+detach = ["prefix+q", "ctrl+alt+q"]               # quit client / detach
+reload_config = "prefix+shift+r"
+open_notification_target = ["prefix+o", "ctrl+alt+o"]
+
+# --- workspaces / goto ---
+workspace_picker = ["prefix+w", "ctrl+alt+a"]     # Activity / areas (W taken by close)
+goto = ["prefix+g", "ctrl+alt+p"]                 # VS Code: Ctrl+P Quick Open
+new_workspace = "prefix+shift+n"
+new_worktree = "prefix+shift+g"
+rename_workspace = "prefix+shift+w"
+close_workspace = "prefix+shift+d"
+open_worktree = "prefix+alt+o"
+remove_worktree = "prefix+alt+backspace"
+previous_workspace = "prefix+alt+["
+next_workspace = "prefix+alt+]"
+
+# --- agents ---
+previous_agent = "ctrl+alt+;"
+next_agent = "ctrl+alt+'"
+
+# --- tabs ---
+new_tab = ["prefix+c", "ctrl+alt+n"]              # VS Code: Ctrl+N new
+rename_tab = "prefix+shift+t"
+previous_tab = ["prefix+p", "ctrl+alt+["]
+next_tab = ["prefix+n", "ctrl+alt+]"]
+switch_tab = "prefix+1..9"                        # digits cannot carry ctrl+alt here
+close_tab = ["prefix+shift+x", "ctrl+alt+x"]      # stronger close than pane
+move_tab_previous = "prefix+alt+,"
+move_tab_next = "prefix+alt+."
+
+# --- panes ---
+rename_pane = "prefix+shift+p"
+edit_scrollback = ["prefix+e", "ctrl+alt+e"]
+copy_mode = ["prefix+[", "ctrl+alt+c"]            # Copy (was Y/yank)
+focus_pane_left = ["prefix+h", "ctrl+alt+h"]
+focus_pane_down = ["prefix+j", "ctrl+alt+j"]
+focus_pane_up = ["prefix+k", "ctrl+alt+k"]
+focus_pane_right = ["prefix+l", "ctrl+alt+l"]
+swap_pane_left = "prefix+shift+h"
+swap_pane_down = "prefix+shift+j"
+swap_pane_up = "prefix+shift+k"
+swap_pane_right = "prefix+shift+l"
+cycle_pane_next = ["prefix+tab", "ctrl+alt+/"]
+cycle_pane_previous = ["prefix+shift+tab", "ctrl+alt+."]
+last_pane = "ctrl+alt+`"
+split_vertical = ["prefix+v", "ctrl+alt+\\"]      # VS Code: Ctrl+\ split
+split_horizontal = ["prefix+minus", "ctrl+alt+-"]
+close_pane = ["prefix+x", "ctrl+alt+w"]           # VS Code: Ctrl+W close editor
+zoom = ["prefix+z", "ctrl+alt+z"]                 # zoom ≈ zen focus
+resize_mode = ["prefix+r", "ctrl+alt+r"]
+resize_pane_left = "ctrl+alt+shift+left"
+resize_pane_down = "ctrl+alt+shift+down"
+resize_pane_up = "ctrl+alt+shift+up"
+resize_pane_right = "ctrl+alt+shift+right"
+toggle_sidebar = ["prefix+b", "ctrl+alt+b"]       # VS Code: Ctrl+B
+
+# =============================================================================
+# Plugins (Ctrl+Alt = daily; prefix = secondary)
+# Skip admin: setup-keys, remove-keys, install-pager, uninstall-pager
+# =============================================================================
+
+# hunk: M ≈ VS Code Problems (Ctrl+Shift+M) / review markers
 [[keys.command]]
-key = "prefix+shift+h"
+key = "ctrl+alt+m"
 type = "plugin_action"
 command = "jhochenbaum.hunkdiff.review"
 description = "hunk: review changes"
 
 [[keys.command]]
-key = "prefix+shift+s"
+key = "ctrl+alt+u"
 type = "plugin_action"
 command = "jhochenbaum.hunkdiff.send-review"
 description = "hunk: send review to agent"
+
+# comment nav: prefix+alt (N/P taken by new tab / reserved)
+[[keys.command]]
+key = "prefix+alt+n"
+type = "plugin_action"
+command = "jhochenbaum.hunkdiff.next-comment"
+description = "hunk: next review comment"
+
+[[keys.command]]
+key = "prefix+alt+p"
+type = "plugin_action"
+command = "jhochenbaum.hunkdiff.prev-comment"
+description = "hunk: previous review comment"
 
 [[keys.command]]
 key = "prefix+shift+c"
@@ -40,13 +128,32 @@ command = "jhochenbaum.hunkdiff.review:staged"
 description = "hunk: review staged changes"
 
 [[keys.command]]
-key = "prefix+shift+b"
-type = "shell"
-command = "terminal-browser-open"
-description = "terminal-browser"
+key = "prefix+alt+b"
+type = "plugin_action"
+command = "jhochenbaum.hunkdiff.review:branch"
+description = "hunk: review branch vs base"
 
 [[keys.command]]
-key = "prefix+f"
+key = "prefix+alt+u"
+type = "plugin_action"
+command = "jhochenbaum.hunkdiff.review:stash"
+description = "hunk: review latest stash"
+
+[[keys.command]]
+key = "prefix+alt+y"
+type = "plugin_action"
+command = "jhochenbaum.hunkdiff.reload"
+description = "hunk: reload open review"
+
+[[keys.command]]
+key = "prefix+alt+x"
+type = "plugin_action"
+command = "jhochenbaum.hunkdiff.close-review"
+description = "hunk: close review pane"
+
+# F ≈ Explorer / files
+[[keys.command]]
+key = "ctrl+alt+f"
 type = "plugin_action"
 command = "herdr-file-viewer.open-file-viewer"
 description = "file viewer (split)"
@@ -57,8 +164,16 @@ type = "plugin_action"
 command = "herdr-file-viewer.open-file-viewer-tab"
 description = "file viewer (tab)"
 
+# I = Internet / in-terminal browser (WSL-safe router)
 [[keys.command]]
-key = "prefix+alt+g"
+key = "ctrl+alt+i"
+type = "shell"
+command = "terminal-browser-open"
+description = "terminal-browser"
+
+# G ≈ VS Code Source Control (Ctrl+Shift+G)
+[[keys.command]]
+key = "ctrl+alt+g"
 type = "popup"
 command = "lazygit"
 description = "lazygit"

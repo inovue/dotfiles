@@ -32,7 +32,7 @@ setup.sh (Ubuntu)           →  ansible roles + optional bws
 stow/<pkg>/                 →  ./stow.sh restow  →  $HOME symlinks
 setup.sh (WSL) / windows/   →  .wslconfig + agent-browser-win + WezTerm
 
-Ctrl+B Shift+B → terminal-browser-open
+Ctrl+Alt+I → terminal-browser-open
   native → herdr plugin open-split
   WSL    → tb-split → windows/wezterm/tb-split.{sh,ps1}
 ```

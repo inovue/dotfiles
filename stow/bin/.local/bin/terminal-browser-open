@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# herdr Ctrl+B Shift+B → platform-specific TB open.
+# herdr Ctrl+Alt+I → platform-specific TB open.
 # WSL: WezTerm sibling (tb-split). Native: herdr plugin nested split.
 set -euo pipefail
 if command -v powershell.exe >/dev/null 2>&1; then

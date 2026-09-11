@@ -9,6 +9,8 @@ local config = wezterm.config_builder()
 -- Kitty protocols: graphics for terminal-browser.
 -- keyboard OFF: with herdr, IME 1-char Composed commits are dropped
 -- (wezterm#7944, unmerged). Re-enable after that lands in nightly.
+-- Consequence: Ctrl+Alt+Shift+letter often collapses to Ctrl+Alt+letter
+-- in the PTY. herdr direct binds must not rely on Shift+letter.
 config.enable_kitty_graphics = true
 config.enable_kitty_keyboard = false
 
@@ -56,7 +58,26 @@ local tb_split = act.SplitPane {
   },
 }
 
+-- Free CTRL|ALT for herdr (prefix-free). Defaults that steal those chords:
+--   CTRL|ALT+"  / CTRL|ALT+%  → WezTerm split
+--   CTRL|SHIFT|ALT+arrows     → WezTerm AdjustPaneSize
+--   CTRL|SHIFT|ALT+' / 5      → same splits (shifted forms)
+local passthrough = act.DisableDefaultAssignment
+
 config.keys = {
+  -- Pass CTRL|ALT through to herdr / the PTY
+  { key = '"', mods = 'CTRL|ALT', action = passthrough },
+  { key = '"', mods = 'CTRL|ALT|SHIFT', action = passthrough },
+  { key = '%', mods = 'CTRL|ALT', action = passthrough },
+  { key = '%', mods = 'CTRL|ALT|SHIFT', action = passthrough },
+  { key = "'", mods = 'CTRL|ALT|SHIFT', action = passthrough },
+  { key = '5', mods = 'CTRL|ALT|SHIFT', action = passthrough },
+  { key = 'LeftArrow', mods = 'CTRL|ALT|SHIFT', action = passthrough },
+  { key = 'RightArrow', mods = 'CTRL|ALT|SHIFT', action = passthrough },
+  { key = 'UpArrow', mods = 'CTRL|ALT|SHIFT', action = passthrough },
+  { key = 'DownArrow', mods = 'CTRL|ALT|SHIFT', action = passthrough },
+
+  -- Host-level binds (WezTerm, not herdr)
   { key = 'v', mods = 'CTRL', action = act.PasteFrom 'Clipboard' },
   { key = 'V', mods = 'CTRL|SHIFT', action = act.PasteFrom 'Clipboard' },
   { key = 't', mods = 'CTRL|SHIFT', action = act.SpawnCommandInNewTab(spawn_home) },

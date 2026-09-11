@@ -17,93 +17,98 @@ WezTerm（WSL）: [windows/wezterm/README.md](../windows/wezterm/README.md)
 | パス | 内容 |
 | --- | --- |
 | `stow/herdr/.config/herdr/config.toml` | 本体・キー |
-| `stow/bin/.../terminal-browser-open` | `Ctrl+B` `Shift+B` ルーター |
-| `stow/bin/.../tb-split` | WSL → `windows/wezterm/tb-split.sh` |
-| Ansible `tools` | herdr / hunk-diff / file-viewer / terminal-browser CLI + plugins |
+| `windows/wezterm/wezterm.lua` | 外側（`CTRL\|ALT` を herdr へ通す） |
+| `stow/bin/.../terminal-browser-open` | `Ctrl+Alt+I` ルーター |
+| Ansible `tools` | herdr / plugins |
 
 ```bash
 ./stow.sh restow herdr bin
 herdr server reload-config
 ```
 
-## キー（prefix = `Ctrl+B`）
+## キー設計
+
+軸は **`Ctrl+Alt`**（公式の prefix-free 推奨）。この WezTerm では **素の文字だけ**が確実（`Shift+文字` / 数字 / `?` は欠落）。
+
+直感性は **VS Code の文字ニュアンス**を `Ctrl+Alt` に載せ替え:
+
+| VS Code | → ここ (`Ctrl+Alt`) |
+| --- | --- |
+| `Ctrl+B` Sidebar | `B` |
+| `Ctrl+,` Settings | `,` |
+| `Ctrl+P` Quick Open | `P`（goto） |
+| `Ctrl+Shift+G` SCM | `G`（lazygit） |
+| `Ctrl+\` Split | `\` |
+| `Ctrl+W` Close editor | `W`（close pane） |
+| `Ctrl+N` New | `N`（new tab） |
+| `Ctrl+K Ctrl+S` Keybindings | `S`（help） |
+| Zen / focus | `Z`（zoom） |
+| Explorer / files | `F` |
+| Problems `Ctrl+Shift+M` | `M`（hunk review） |
+
+ペイン移動は端末向けに **`H J K L`**（VS Code に良い文字コードが無い）。
+
+ヘルプ: **`Ctrl+Alt+S`** または `Ctrl+B` `?`
+
+### Direct（`Ctrl+Alt`）
 
 | キー | 動作 |
 | --- | --- |
-| `Shift+H` / `S` / `C` / `A` | hunk review / send / commit / staged |
-| `f` / `Shift+F` | file viewer（split / tab） |
-| `Shift+B` | terminal-browser（下表） |
-| `Alt+G` | lazygit |
-| WezTerm `Ctrl+Shift+B` | WSL: 兄弟ペイン（herdr 外） |
+| `H` `J` `K` `L` | ペイン focus |
+| `N` | 新タブ |
+| `\` / `-` | 縦分割 / 横分割 |
+| `W` / `X` | ペイン閉じる / タブ閉じる |
+| `Z` | zoom |
+| `[` / `]` | 前 / 次タブ |
+| `/` / `.` | ペイン cycle |
+| `` ` `` | last pane |
+| `B` / `A` / `P` | サイドバー / WS picker / goto |
+| `R` / `C` / `E` | resize / copy mode / scrollback 編集 |
+| `S` / `,` / `O` / `Q` | help / settings / 通知 / detach |
+| `;` / `'` | 前 / 次エージェント |
+| `M` / `U` | hunk review / send |
+| `F` / `I` / `G` | file viewer / TB / lazygit |
+| `Shift+←↓↑→` | 直接リサイズ |
 
-### `Shift+B`（`terminal-browser-open`）
+### Prefix（`Ctrl+B` のあと）
 
-| 環境 | 実体 | send-to-agent (`Ctrl+G`) |
-| --- | --- | --- |
-| Native | herdr `open-split` | 同タブの agent ペインへ届く |
-| WSL | `tb-split` | 届かない（兄弟ペインのため） |
+| キー | 動作 |
+| --- | --- |
+| `Shift+H/J/K/L` | ペイン swap |
+| `Shift+N/W/D` | WS 新規 / 改名 / 閉じる |
+| `Shift+G` · `Alt+O` · `Alt+Backspace` | worktree |
+| `1`–`9` · `Shift+T/P` | タブジャンプ / 改名 / ペイン改名 |
+| `Shift+R` | reload config |
+| `Shift+C/A` · `Alt+B/U/Y/X` | hunk commit/staged/branch/stash/reload/close |
+| `Alt+N/P` | hunk 次 / 前コメント |
+| `Shift+F` | file viewer（tab） |
+| WezTerm `Ctrl+Shift+B` | WSL 兄弟 TB |
 
-WSL でネストしない理由: PTY セル画素 0 → no `direct-kitty`。[windows/wsl/README.md](../windows/wsl/README.md)
+### 衝突メモ
 
-## 本体設定の要点
-
-- `mouse_capture = true`
-- `host_cursor = "native"`（IME）
-- `terminal.kitty_graphics = true`
-- `reveal_hidden_cursor_for_cjk_ime` / `cjk_ime_cursor_shape`
+| コード | 扱い |
+| --- | --- |
+| `Ctrl+Alt+Shift+文字` | 使わない（Shift 欠落） |
+| `Ctrl+Alt+数字` / `?` | 使わない |
+| `Ctrl+Alt+Tab` | Win タスク切替 → 不使用 |
+| WezTerm `Ctrl+Alt+Shift+W` | タブごと閉じ（ホスト）。素の `Ctrl+Alt+W` は herdr のペイン閉じ |
+| `Ctrl+Alt+A` | KDE では注意。この Win+WezTerm では WS picker |
 
 ---
 
-## Plugin: hunk-diff
+## Plugin 要点
 
-公式: [herdr-hunk-diff](https://github.com/jhochenbaum/herdr-hunk-diff)
-
-1. agent / worktree ペインにフォーカス  
-2. `Ctrl+B` `Shift+H` → コメント  
-3. `Ctrl+B` `Shift+S` → agent に送信  
+**hunk:** `Ctrl+Alt+M` → review、`Ctrl+Alt+U` → send  
+**file-viewer:** `Ctrl+Alt+F`（tab は `Ctrl+B` `Shift+F`）  
+**TB:** `Ctrl+Alt+I`（WSL は兄弟ペイン）  
+**lazygit:** `Ctrl+Alt+G`
 
 ```toml
+# hunk plugin
 [review]
 auto_open = true
 watch = true
 ```
-
-worktree 共有時は送りたい agent にフォーカスしてから review／send。完全分離は別 worktree。
-
----
-
-## Plugin: file-viewer
-
-公式: [smarzban/herdr-file-viewer](https://github.com/smarzban/herdr-file-viewer)
-
-`Ctrl+B` `f` → split、`Ctrl+B` `Shift+F` → tab。git 状態付きツリー＋diff / markdown / シンタックスハイライト（`glow` / `delta` / `bat`）。
-
-```bash
-./setup.sh --tags herdr
-```
-
----
-
-## Plugin: terminal-browser
-
-公式: [zenbu-labs/terminal-browser](https://github.com/zenbu-labs/terminal-browser)
-
-**Native:** `Ctrl+B` `Shift+B` または `terminal-browser open URL --split right`  
-**WSL:** `Ctrl+B` `Shift+B` / `tb-split` / WezTerm `Ctrl+Shift+B`（ネスト禁止）
-
-agent 操作:
-
-```bash
-terminal-browser ls
-terminal-browser action -- snapshot
-terminal-browser action done
-```
-
-| ツール | 用途 |
-| --- | --- |
-| `terminal-browser` + `action` | ターミナル内ブラウザ |
-| `agent-browser` | Linux 自動化 |
-| `agent-browser-win` | ログイン済み Win Chrome |
 
 ---
 
@@ -111,15 +116,6 @@ terminal-browser action done
 
 | 症状 | 確認 |
 | --- | --- |
-| TB 真っ黒 / JP IME | [windows/wezterm/README.md](../windows/wezterm/README.md) |
-| WSL で遅い・検索不安定 | [windows/wsl/README.md](../windows/wsl/README.md) → `wsl --shutdown` |
-| WSL ネスト TB が遅い | 想定どおり → 兄弟ペインを使う |
-| `Shift+B` 無反応（WSL） | `./stow.sh restow bin`、`tb-split` on PATH |
-| Native で plugin 失敗 | `./setup.sh --tags terminal-browser` |
-| 設定が効かない | `./stow.sh restow herdr` → `herdr server reload-config` |
-| hunk / TB が開かない（`herdr (deleted)`） | setup が stale server を handoff。手動なら `herdr server live-handoff` または `scripts/herdr_handoff_if_stale.sh` |
-
-```bash
-./setup.sh --tags herdr
-./setup.sh --tags terminal-browser
-```
+| TB / IME | [windows/wezterm/README.md](../windows/wezterm/README.md) |
+| `Ctrl+Alt` が変 | Shift+文字を使っていないか。WezTerm lua 最新か |
+| 設定反映 | `./stow.sh restow herdr` → `herdr server reload-config` |
