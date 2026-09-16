@@ -21,6 +21,7 @@ Human onboarding: [README.md](README.md). Doc index: [docs/README.md](docs/READM
 | Secrets / FAL_KEY / `bws run` | [docs/bws.md](docs/bws.md) (developer section) |
 | Logged-in Windows Chrome | skill `agent-browser-win` + [docs/agent-browser-win.md](docs/agent-browser-win.md) |
 | RTK (Cursor CLI token filter) | `./scripts/setup_rtk.sh` — pin `rtk_pin` in `ansible/group_vars/all.yml` |
+| Origin CLI | pin `origin_pin` in `ansible/group_vars/all.yml` → `./setup.sh --tags tools` — then `origin auth login` |
 | LP / genmedia grids | skill `asset-generator` (+ `skills/asset-generator/references/`) |
 | Windows host layout | [windows/README.md](windows/README.md) |
 

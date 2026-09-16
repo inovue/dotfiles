@@ -10,6 +10,7 @@ git_user_email: "{{ ansible_facts['user_id'] }}@users.noreply.github.com"
 sheldon_version: "0.8.5"
 lazygit_version: "0.65.0"
 bws_version: "2.1.0"
+glow_version: "3.0.0"
 helix_version: "25.07.1"
 helix_deb_revision: "25.7.1-1"
 
@@ -27,6 +28,7 @@ pnpm_pin: "11.25.0"
 bun_pin: "1.4.2"
 genmedia_pin: "0.7.0"
 cursor_agent_pin: "2026.09.02-c22c1a3"
+origin_pin: "2026.09.15-20-04-20-86efe77"
 rtk_pin: "0.48.0"
 
 # GNU Stow packages under stow/ (one app each; mirrors $HOME)

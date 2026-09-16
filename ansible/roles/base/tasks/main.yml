@@ -30,7 +30,6 @@
       - stow
       - ffmpeg
       - bat
-      - glow
       - ripgrep
       - fd-find
       - fzf

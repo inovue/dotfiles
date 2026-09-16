@@ -58,6 +58,12 @@
     update_cache: true
     dpkg_options: force-confdef,force-confold
 
+- name: Install glow (official GitHub .deb)
+  become: true
+  ansible.builtin.apt:
+    deb: "https://github.com/charmbracelet/glow/releases/download/v{{ glow_version }}/glow_{{ glow_version }}_{{ glow_deb_arch }}.deb"
+    state: present
+
 - name: Install Helix on x86_64 (official GitHub .deb)
   become: true
   ansible.builtin.apt:
@@ -113,6 +119,9 @@
     - name: cursor-agent
       pin: "{{ cursor_agent_pin }}"
       cmd: curl -fsSL https://cursor.com/install | bash
+    - name: origin
+      pin: "{{ origin_pin }}"
+      cmd: curl -fsSL https://downloads.cursor.com/origin/install.sh | sh
     - name: rtk
       pin: "{{ rtk_pin }}"
       cmd: |

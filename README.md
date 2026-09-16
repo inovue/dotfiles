@@ -41,7 +41,7 @@ Git デフォルト: `user.name` = 実行ユーザー、`user.email` = `{user}@u
 
 | ツール | アクション |
 | --- | --- |
-| GitHub / Fly / Modal / Cursor CLI | `gh auth login` / `fly auth login` / `modal token new` / `agent login` |
+| GitHub / Fly / Modal / Cursor CLI / Origin | `gh auth login` / `fly auth login` / `modal token new` / `agent login` / `origin auth login` |
 | Bitwarden SM | [docs/bws.md](docs/bws.md) |
 | agent-browser-win | `agent-browser-win start` 後に一度ログイン |
 | genmedia | SM に `FAL_KEY` 後 `genmedia` |
