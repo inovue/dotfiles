@@ -11,6 +11,7 @@
 - name: Clear unmanaged conflicts for stow packages
   ansible.builtin.shell: |
     set -euo pipefail
+    # Never delete paths that already resolve into this package (folded dir symlink).
     stow_dir="{{ dotfiles_root }}/stow"
     pkg="{{ item }}"
     root="$stow_dir/$pkg"
@@ -18,13 +19,12 @@
     while IFS= read -r -d '' src; do
       rel="${src#"$root"/}"
       dest="{{ home }}/$rel"
-      if [[ -L "$dest" ]]; then
-        real="$(readlink -f "$dest" || true)"
-        [[ "$real" == "$root/"* ]] && continue
+      [[ -e "$dest" || -L "$dest" ]] || continue
+      real="$(readlink -f "$dest" || true)"
+      [[ -n "$real" && "$real" == "$root/"* ]] && continue
+      if [[ -L "$dest" || -f "$dest" ]]; then
         rm -f "$dest"
-      elif [[ -f "$dest" ]]; then
-        rm -f "$dest"
-      elif [[ -e "$dest" ]]; then
+      else
         echo "refusing to remove non-file conflict: $dest" >&2
         exit 1
       fi
@@ -39,6 +39,7 @@
     argv:
       - stow
       - --restow
+      - --no-folding
       - --dir
       - "{{ dotfiles_root }}/stow"
       - --target

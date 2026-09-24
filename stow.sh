@@ -46,25 +46,28 @@ if ! command -v stow >/dev/null 2>&1; then
 fi
 
 clear_conflicts() {
+  # Remove unmanaged $HOME paths that would block stow. Never delete paths that
+  # already resolve into this package (e.g. via a folded directory symlink).
   local pkg="$1" root="$STOW_DIR/$pkg" src rel dest real
   [[ -d "$root" ]] || return 0
   while IFS= read -r -d '' src; do
     rel="${src#"$root"/}"
     dest="$TARGET/$rel"
-    if [[ -L "$dest" ]]; then
-      real="$(readlink -f "$dest" || true)"
-      [[ "$real" == "$root/"* ]] && continue
+    [[ -e "$dest" || -L "$dest" ]] || continue
+    real="$(readlink -f "$dest" || true)"
+    [[ -n "$real" && "$real" == "$root/"* ]] && continue
+    if [[ -L "$dest" || -f "$dest" ]]; then
       rm -f "$dest"
-    elif [[ -f "$dest" ]]; then
-      rm -f "$dest"
-    elif [[ -e "$dest" ]]; then
+    else
       echo "error: non-file conflict: $dest" >&2
       exit 1
     fi
   done < <(find "$root" -type f -print0)
 }
 
-STOW_ARGS=(--dir "$STOW_DIR" --target "$TARGET")
+# --no-folding: link files only so apps writing siblings (e.g. hunk state.json)
+# land under $HOME, not inside the stow package tree.
+STOW_ARGS=(--dir "$STOW_DIR" --target "$TARGET" --no-folding)
 case "$MODE" in
   stow) ;;
   unstow) STOW_ARGS+=(--delete) ;;
