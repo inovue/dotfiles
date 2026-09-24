@@ -37,5 +37,5 @@
           Configs: stow packages under stow/ (linked into $HOME).
           Day-to-day: ./stow.sh restow
           Run `exec zsh` to apply shell config.
-          HyperFrames check: `npx hyperframes doctor`
+          Smoke: see docs/setup-stow.md
       tags: always

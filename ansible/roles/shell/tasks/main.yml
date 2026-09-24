@@ -30,6 +30,7 @@
     url: "https://github.com/rossmacarthur/sheldon/releases/download/{{ sheldon_version }}/sheldon-{{ sheldon_version }}-{{ sheldon_arch }}.tar.gz"
     dest: "/tmp/sheldon-{{ sheldon_version }}.tar.gz"
     mode: "0644"
+    timeout: 60
   when: sheldon_installed.rc != 0 or sheldon_version not in (sheldon_installed.stdout | default(''))
 
 - name: Install Sheldon binary

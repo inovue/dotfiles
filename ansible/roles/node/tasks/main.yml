@@ -27,42 +27,6 @@
     creates: "{{ home }}/.local/share/fnm/aliases/default/bin/hunk"
     executable: /bin/bash
 
-- name: Install agent-browser via npm
-  ansible.builtin.shell: |
-    export PATH="{{ home }}/.local/share/fnm:$PATH"
-    eval "$({{ home }}/.local/share/fnm/fnm env)"
-    npm install -g agent-browser
-  args:
-    creates: "{{ home }}/.local/share/fnm/aliases/default/bin/agent-browser"
-    executable: /bin/bash
-
-- name: Install agent-browser Chrome for Testing
-  ansible.builtin.shell: |
-    export PATH="{{ home }}/.local/share/fnm:$PATH"
-    eval "$({{ home }}/.local/share/fnm/fnm env)"
-    agent-browser install
-  args:
-    creates: "{{ home }}/.agent-browser/browsers"
-    executable: /bin/bash
-
-- name: Install agent-browser skill globally for Cursor
-  ansible.builtin.shell: |
-    export PATH="{{ home }}/.local/share/fnm:$PATH"
-    eval "$({{ home }}/.local/share/fnm/fnm env)"
-    npx -y skills add vercel-labs/agent-browser -g -a cursor -s agent-browser -y
-  args:
-    creates: "{{ home }}/.agents/skills/agent-browser/SKILL.md"
-    executable: /bin/bash
-
-- name: Ensure HyperFrames Chrome Headless Shell
-  ansible.builtin.shell: |
-    export PATH="{{ home }}/.local/share/fnm:$PATH"
-    eval "$({{ home }}/.local/share/fnm/fnm env)"
-    npx hyperframes browser ensure
-  args:
-    creates: "{{ home }}/.cache/hyperframes/chrome"
-    executable: /bin/bash
-
 - name: Install or refresh pnpm
   ansible.builtin.include_tasks:
     file: "{{ playbook_dir }}/tasks/curl_installer.yml"
@@ -84,8 +48,3 @@
       cmd: curl -fsSL https://bun.sh/install | bash -s "bun-v{{ bun_pin }}"
   loop_control:
     loop_var: installer
-
-- name: Install asset-generator skill globally
-  ansible.builtin.shell: bash "{{ dotfiles_root }}/scripts/setup_asset_generator.sh"
-  args:
-    executable: /bin/bash

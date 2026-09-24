@@ -1,21 +1,4 @@
 # ----------------------------------------
-# Environment Variables
-# ----------------------------------------
-if [ -x "$HOME/.local/bin/wsl-browser" ] && command -v cmd.exe >/dev/null 2>&1; then
-  export BROWSER="$HOME/.local/bin/wsl-browser"
-fi
-
-# WezTerm (Windows host + WSL): report Linux cwd via OSC 7 so new tabs/splits
-# inherit $PWD instead of the wsl.exe process cwd (/mnt/c/...).
-# https://wezterm.org/shell-integration.html
-if [[ -n "${WEZTERM_PANE-}" || "${TERM_PROGRAM-}" == "WezTerm" ]]; then
-  __wezterm_osc7() {
-    printf '\033]7;file://%s%s\033\\' "${HOSTNAME:-localhost}" "${PWD}"
-  }
-  precmd_functions+=(__wezterm_osc7)
-fi
-
-# ----------------------------------------
 # Modern CLI Aliases
 # ----------------------------------------
 if command -v batcat >/dev/null 2>&1; then
