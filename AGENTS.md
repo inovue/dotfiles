@@ -14,7 +14,7 @@ Human onboarding: [README.md](README.md). Doc index: [docs/README.md](docs/READM
 | --- | --- |
 | Layout / Ansible vs Stow | [docs/architecture.md](docs/architecture.md) |
 | `setup.sh` / tags / pins / adding a stow pkg | [docs/setup-stow.md](docs/setup-stow.md) |
-| herdr, hunk-diff, file-viewer | [docs/herdr.md](docs/herdr.md) |
+| herdr, hunk-diff | [docs/herdr.md](docs/herdr.md) |
 | Secrets / FAL_KEY / `bws run` | [docs/bws.md](docs/bws.md) |
 | RTK (Cursor CLI token filter) | `./scripts/setup_rtk.sh` — pin `rtk_pin` in `ansible/group_vars/all.yml` |
 

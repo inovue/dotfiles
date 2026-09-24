@@ -7,7 +7,7 @@
 | パス | 内容 |
 | --- | --- |
 | `stow/herdr/.config/herdr/config.toml` | キー・プラグイン |
-| Ansible `tools` | herdr / hunk-diff / file-viewer |
+| Ansible `tools` | herdr / hunk-diff |
 
 ```bash
 ./stow.sh restow herdr
@@ -28,7 +28,6 @@ herdr server reload-config
 | Close `Ctrl+W` | `W` |
 | New `Ctrl+N` | `N` |
 | Keybindings | `S`（help） |
-| Explorer | `F`（file-viewer） |
 | Problems | `M`（hunk review） |
 
 ペイン移動: **`H J K L`**. ヘルプ: **`Ctrl+Alt+S`** または `Ctrl+B` `?`
@@ -44,7 +43,7 @@ herdr server reload-config
 | `Z` | zoom |
 | `B` / `A` / `P` | サイドバー / WS picker / goto |
 | `M` / `U` | hunk review / send |
-| `F` / `G` | file viewer / lazygit |
+| `G` | lazygit |
 
 ### Prefix（`Ctrl+B` のあと）
 
@@ -53,13 +52,11 @@ herdr server reload-config
 | `Shift+H/J/K/L` | ペイン swap |
 | `Shift+C/A` · `Alt+B/U/Y/X` | hunk commit/staged/branch/stash/reload/close |
 | `Alt+N/P` | hunk 次 / 前コメント |
-| `Shift+F` | file viewer（tab） |
 | `Shift+R` | reload config |
 
 ## Plugins
 
 - **hunk:** `Ctrl+Alt+M` review、`Ctrl+Alt+U` send
-- **file-viewer:** `Ctrl+Alt+F`（tab は `Ctrl+B` `Shift+F`）— markdown に `glow` を使用
 - **lazygit:** `Ctrl+Alt+G`
 
 ## トラブル
