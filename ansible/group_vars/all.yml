@@ -11,6 +11,7 @@ sheldon_version: "0.8.5"
 lazygit_version: "0.65.0"
 bws_version: "2.1.0"
 glow_version: "3.0.0"
+trzsz_version: "1.2.0"
 helix_version: "25.07.1"
 helix_deb_revision: "25.7.1-1"
 
@@ -22,11 +23,14 @@ uv_pin: "0.12.9"
 flyctl_pin: "0.4.97"
 herdr_pin: "0.9.0"
 herdr_hunkdiff_pin: "0.3.0"
+terminal_browser_pin: "0.11.1"
+agent_browser_pin: "0.38.1"
 pnpm_pin: "11.25.0"
 bun_pin: "1.4.2"
 genmedia_pin: "0.7.0"
 cursor_agent_pin: "2026.09.02-c22c1a3"
 rtk_pin: "0.48.0"
+omp_pin: "18.3.0"
 
 # GNU Stow packages under stow/ (one app each; mirrors $HOME)
 stow_packages:
@@ -37,3 +41,4 @@ stow_packages:
   - herdr
   - hunk
   - cursor
+  - agent-browser

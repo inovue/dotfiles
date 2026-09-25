@@ -20,6 +20,8 @@ Optional: `./setup.sh --bws-send-url 'https://send.bitwarden.com/#…'` — see 
 ./setup.sh --tags shell,node
 ./setup.sh --tags dotfiles
 ./setup.sh --tags herdr
+./setup.sh --tags terminal-browser
+./setup.sh --tags agent-browser
 ```
 
 ## Version pins
@@ -55,7 +57,10 @@ If Stow refuses because a real file exists, move/remove it then `./stow.sh resto
 | Fly | `fly auth login` |
 | Modal | `modal token new` |
 | Cursor CLI | `agent login` |
+| omp | `omp`（初回ウィザードで provider / model） |
 | RTK | `./scripts/setup_rtk.sh` or `./setup.sh --tags tools` |
+| terminal-browser | `./setup.sh --tags terminal-browser`（kitty graphics 対応ターミナル） |
+| agent-browser | `./setup.sh --tags agent-browser`（[vercel-labs/agent-browser](https://github.com/vercel-labs/agent-browser)；ARM64 は CfT 手動取得、サーバは `--no-sandbox` 既定；公式 skill は `npx skills add … -g`） |
 | Bitwarden SM | [bws.md](bws.md) |
 | genmedia | `FAL_KEY` in SM, then `genmedia` |
 | herdr | [herdr.md](herdr.md) |

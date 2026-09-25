@@ -1,10 +1,10 @@
 onboarding = false
 # Docs: https://herdr.dev/docs/configuration/
 # Prefix-free: https://herdr.dev/ja/docs/keyboard/#プレフィックスなしで運用する
-# hunk-diff: see docs/herdr.md
+# hunk-diff / terminal-browser: see docs/herdr.md
 #
 # Ctrl+Alt = daily (VS Code metaphors): B sidebar, , settings, P goto, G git,
-# \ split, W close pane, N new tab, Z zoom, S keybindings help.
+# I browser, \ split, W close pane, N new tab, Z zoom, S keybindings help.
 # hjkl = pane focus. Rarer / Shift actions → prefix (ctrl+b).
 
 [theme]
@@ -140,6 +140,12 @@ key = "prefix+alt+x"
 type = "plugin_action"
 command = "jhochenbaum.hunkdiff.close-review"
 description = "hunk: close review pane"
+
+[[keys.command]]
+key = "ctrl+alt+i"
+type = "plugin_action"
+command = "zenbu-labs.terminal-browser.open-split"
+description = "terminal-browser: open right split"
 
 [[keys.command]]
 key = "ctrl+alt+g"

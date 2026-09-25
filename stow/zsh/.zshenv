@@ -21,4 +21,5 @@ export PATH
 # genmedia setup は非推奨（FAL_KEY の平文保存）。SM に FAL_KEY を登録して使う。
 if command -v bws >/dev/null 2>&1; then
   alias genmedia='bws run -- genmedia'
+  alias omp='bws run -- omp'
 fi

@@ -67,6 +67,13 @@
     state: present
     lock_timeout: 120
 
+- name: Install trzsz (official GitHub .deb)
+  become: true
+  ansible.builtin.apt:
+    deb: "https://github.com/trzsz/trzsz-go/releases/download/v{{ trzsz_version }}/trzsz_{{ trzsz_version }}_linux_{{ trzsz_deb_arch }}.deb"
+    state: present
+    lock_timeout: 120
+
 - name: Install Helix on x86_64 (official GitHub .deb)
   become: true
   ansible.builtin.apt:
@@ -134,11 +141,36 @@
       cmd: |
         export PATH="{{ home }}/.local/bin:$PATH"
         curl -fsSL https://genmedia.sh/install | bash
+    - name: omp
+      pin: "{{ omp_pin }}"
+      cmd: |
+        export PATH="{{ home }}/.local/bin:$PATH"
+        curl -fsSL https://omp.sh/install | sh -s -- --binary --ref "v{{ omp_pin }}"
     - name: herdr
       pin: "{{ herdr_pin }}"
       cmd: curl -fsSL https://herdr.dev/install.sh | sh
+    - name: terminal-browser
+      pin: "{{ terminal_browser_pin }}"
+      cmd: |
+        export PATH="{{ home }}/.local/bin:$PATH"
+        export TERMINAL_BROWSER_SKIP_SETUP=1
+        curl -fsSL "https://terminal-browser.sh/install/v/v{{ terminal_browser_pin }}" | bash
   loop_control:
     loop_var: installer
+
+- name: Install or refresh agent-browser
+  ansible.builtin.include_tasks:
+    file: "{{ playbook_dir }}/tasks/curl_installer.yml"
+  vars:
+    installer:
+      name: agent-browser
+      pin: "{{ agent_browser_pin }}"
+      cmd: |
+        export PATH="{{ home }}/.local/share/fnm:{{ home }}/.local/bin:$PATH"
+        eval "$({{ home }}/.local/share/fnm/fnm env)"
+        export AGENT_BROWSER_PIN="{{ agent_browser_pin }}"
+        bash "{{ dotfiles_root }}/scripts/setup_agent_browser.sh"
+  tags: [agent-browser]
 
 - name: Install or refresh herdr-hunk-diff plugin
   ansible.builtin.include_tasks:
@@ -152,6 +184,19 @@
         eval "$({{ home }}/.local/share/fnm/fnm env)"
         herdr plugin install jhochenbaum/herdr-hunk-diff -y
   tags: [herdr]
+
+- name: Install or refresh herdr terminal-browser plugin
+  ansible.builtin.include_tasks:
+    file: "{{ playbook_dir }}/tasks/curl_installer.yml"
+  vars:
+    installer:
+      name: herdr-terminal-browser
+      pin: "{{ terminal_browser_pin }}"
+      cmd: |
+        export PATH="{{ home }}/.local/bin:$PATH"
+        export TERMINAL_BROWSER_SKIP_SETUP=1
+        herdr plugin install zenbu-labs/terminal-browser/herdr-plugin --ref "v{{ terminal_browser_pin }}" -y
+  tags: [herdr, terminal-browser]
 
 - name: List installed uv Python versions
   ansible.builtin.command: "{{ home }}/.local/bin/uv python list --only-installed"

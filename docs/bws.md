@@ -127,6 +127,7 @@ bws secret list
 bws run -- "npm run dev"
 bws run -- "python main.py"
 genmedia --help   # alias 経由。FAL_KEY は SM から注入
+omp               # alias 経由。OPENROUTER_API_KEY は SM から注入
 ```
 
 > **`genmedia setup` は非推奨** — ローカルに `FAL_KEY` を平文保存するため。SM に `FAL_KEY` を登録し、`genmedia` エイリアス（`bws run -- genmedia`）を使う。

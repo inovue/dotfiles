@@ -7,7 +7,7 @@
 | パス | 内容 |
 | --- | --- |
 | `stow/herdr/.config/herdr/config.toml` | キー・プラグイン |
-| Ansible `tools` | herdr / hunk-diff |
+| Ansible `tools` | herdr / hunk-diff / terminal-browser |
 
 ```bash
 ./stow.sh restow herdr
@@ -24,6 +24,7 @@ herdr server reload-config
 | Settings `Ctrl+,` | `,` |
 | Quick Open `Ctrl+P` | `P` |
 | SCM `Ctrl+Shift+G` | `G`（lazygit） |
+| Browser | `I`（terminal-browser） |
 | Split `Ctrl+\` | `\` |
 | Close `Ctrl+W` | `W` |
 | New `Ctrl+N` | `N` |
@@ -43,7 +44,7 @@ herdr server reload-config
 | `Z` | zoom |
 | `B` / `A` / `P` | サイドバー / WS picker / goto |
 | `M` / `U` | hunk review / send |
-| `G` | lazygit |
+| `I` / `G` | terminal-browser / lazygit |
 
 ### Prefix（`Ctrl+B` のあと）
 
@@ -57,7 +58,10 @@ herdr server reload-config
 ## Plugins
 
 - **hunk:** `Ctrl+Alt+M` review、`Ctrl+Alt+U` send
+- **terminal-browser:** `Ctrl+Alt+I`（右 split）— [zenbu-labs/terminal-browser](https://github.com/zenbu-labs/terminal-browser)
 - **lazygit:** `Ctrl+Alt+G`
+
+外側ターミナルは kitty graphics 対応が必要（Kitty / Ghostty / WezTerm 等）。`kitty_graphics = true` 済み。
 
 ## トラブル
 

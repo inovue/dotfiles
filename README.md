@@ -30,6 +30,7 @@ Git デフォルト: `user.name` = 実行ユーザー、`user.email` = `{user}@u
 | ツール | アクション |
 | --- | --- |
 | GitHub / Fly / Modal / Cursor CLI | `gh auth login` / `fly auth login` / `modal token new` / `agent login` |
+| omp | `omp`（初回で provider / model） |
 | Bitwarden SM | [docs/bws.md](docs/bws.md) |
 | genmedia | SM に `FAL_KEY` 後 `genmedia` |
 

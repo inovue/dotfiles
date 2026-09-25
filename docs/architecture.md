@@ -29,7 +29,7 @@ stow/<pkg>/                 →  ./stow.sh restow  →  $HOME symlinks
 | base packages | `base` |
 | shell tooling | `shell` |
 | Node | `node` |
-| herdr, genmedia, … | `tools`, `herdr` |
+| herdr, genmedia, omp, terminal-browser, agent-browser, … | `tools`, `herdr`, `terminal-browser`, `agent-browser` |
 | Stow apply | `dotfiles`, `stow` |
 
 ## Config edit rule

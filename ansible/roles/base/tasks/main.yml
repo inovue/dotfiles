@@ -51,6 +51,42 @@
       - eza
       - libatomic1
       - libvips-tools
+      # terminal-browser (Electron / kitty graphics) runtime
+      - fonts-liberation
+      - fonts-noto-cjk
+      - fonts-noto-color-emoji
+      - xdg-utils
+      - libasound2t64
+      - libatk-bridge2.0-0t64
+      - libatk1.0-0t64
+      - libatspi2.0-0t64
+      - libcairo2
+      - libcups2t64
+      - libdbus-1-3
+      - libdrm2
+      - libfontconfig1
+      - libgbm1
+      - libgdk-pixbuf-2.0-0
+      - libglib2.0-0t64
+      - libgtk-3-0t64
+      - libnspr4
+      - libnss3
+      - libnss3-tools
+      - libpango-1.0-0
+      - libpangocairo-1.0-0
+      - libvulkan1
+      - libx11-xcb1
+      - libxcb1
+      - libxcomposite1
+      - libxdamage1
+      - libxext6
+      - libxfixes3
+      - libxkbcommon0
+      - libxrandr2
+      - libxrender1
+      - libxshmfence1
+      - libxss1
+      - libxtst6
     state: present
     dpkg_options: force-confdef,force-confold
     lock_timeout: 120
