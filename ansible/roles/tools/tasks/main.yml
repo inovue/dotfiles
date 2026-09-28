@@ -130,6 +130,9 @@
     - name: cursor-agent
       pin: "{{ cursor_agent_pin }}"
       cmd: curl -fsSL https://cursor.com/install | bash
+    - name: claude-code
+      pin: "{{ claude_code_pin }}"
+      cmd: curl -fsSL https://claude.ai/install.sh | bash -s "{{ claude_code_pin }}"
     - name: rtk
       pin: "{{ rtk_pin }}"
       cmd: |
