@@ -133,6 +133,11 @@
     - name: claude-code
       pin: "{{ claude_code_pin }}"
       cmd: curl -fsSL https://claude.ai/install.sh | bash -s "{{ claude_code_pin }}"
+    - name: gh-workspace
+      pin: "{{ gh_workspace_pin }}"
+      cmd: |
+        gh extension remove workspace >/dev/null 2>&1 || true
+        gh extension install inovue/gh-workspace --pin "v{{ gh_workspace_pin }}"
     - name: rtk
       pin: "{{ rtk_pin }}"
       cmd: |

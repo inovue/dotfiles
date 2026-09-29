@@ -58,6 +58,7 @@ If Stow refuses because a real file exists, move/remove it then `./stow.sh resto
 | Modal | `modal token new` |
 | Cursor CLI | `agent login` |
 | Claude Code | `claude`（初回起動でログイン；ピンは `claude_code_pin`） |
+| gh-workspace | `gh workspace`（ピンは `gh_workspace_pin`、要 `gh auth login`；`shell-init` は v0.1.3 未対応） |
 | omp | `omp`（初回ウィザードで provider / model） |
 | RTK | `./scripts/setup_rtk.sh` or `./setup.sh --tags tools` |
 | terminal-browser | `./setup.sh --tags terminal-browser`（kitty graphics 対応ターミナル） |
