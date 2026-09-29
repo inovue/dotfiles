@@ -60,3 +60,7 @@
 - name: Configure git global user.email
   ansible.builtin.command: git config --global user.email "{{ git_user_email }}"
   when: (current_git_email.stdout | default('')) != git_user_email
+
+- name: Configure git global init.defaultBranch
+  ansible.builtin.command: git config --global init.defaultBranch main
+  when: lookup('ansible.builtin.pipe', 'git config --global --get init.defaultBranch || true') != 'main'
