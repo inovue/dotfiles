@@ -18,7 +18,7 @@ check_version() { # name pin_var command...
   local name="$1" want out
   want="$(pin "$2")"
   shift 2
-  if ! out="$("$@" 2>&1 | head -n3)"; then
+  if ! out="$("$@" 2>&1 | head -n20)"; then
     ng "$name: not runnable ($*)"
   elif grep -qE "(^|[^0-9.])${want//./\\.}([^0-9]|$)" <<<"$out"; then
     ok "$name $want"
@@ -44,7 +44,7 @@ check_version terminal-browser terminal_browser_pin terminal-browser --version
 check_version agent-browser agent_browser_pin agent-browser --version
 check_version hunk hunkdiff_pin hunk --version
 check_version modal modal_pin modal --version
-check_version gh-workspace gh_workspace_pin gh extension list
+check_version gh-workspace gh_workspace_pin cat "$HOME/.local/share/gh/extensions/gh-workspace/manifest.yml"
 
 echo "== self-updating tools (present?)"
 for t in claude herdr flyctl node gh; do
