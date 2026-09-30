@@ -119,12 +119,27 @@
       environment:
         RTK_PIN: "{{ rtk_pin }}"
       cmd: bash "{{ dotfiles_root }}/scripts/setup_rtk.sh"
+    # The release binary is a Bun build for x64 with AVX2; CPUs without AVX2
+    # die with SIGILL (rc -4). There, compile a baseline build from the tag.
     - name: genmedia
       pin: "{{ genmedia_pin }}"
       check: "{{ home }}/.genmedia/bin/genmedia --version"
       environment:
         GENMEDIA_VERSION: "{{ genmedia_pin }}"
-      cmd: curl -fsSL https://genmedia.sh/install | bash
+      cmd: |
+        if [ "$(uname -m)" = x86_64 ] && ! grep -qw avx2 /proc/cpuinfo; then
+          tmp="$(mktemp -d)"; trap 'rm -rf "$tmp"' EXIT
+          git clone -q --depth 1 --branch "v{{ genmedia_pin }}" https://github.com/fal-ai-community/genmedia-cli "$tmp/src"
+          cd "$tmp/src"
+          bun install --frozen-lockfile --ignore-scripts
+          bun run scripts/gen-version.ts
+          mkdir -p "{{ home }}/.genmedia/bin" "{{ home }}/.local/bin"
+          bun build --compile --minify --bytecode --target=bun-linux-x64-baseline \
+            --define '__POSTHOG_KEY__=""' src/index.ts --outfile "{{ home }}/.genmedia/bin/genmedia"
+          ln -sfn "{{ home }}/.genmedia/bin/genmedia" "{{ home }}/.local/bin/genmedia"
+        else
+          curl -fsSL https://genmedia.sh/install | bash
+        fi
     - name: terminal-browser
       pin: "{{ terminal_browser_pin }}"
       check: "{{ home }}/.local/bin/terminal-browser --version"
