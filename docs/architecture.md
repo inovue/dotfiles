@@ -6,34 +6,33 @@ Ubuntu CLI only. Procedures → [setup-stow.md](setup-stow.md).
 
 | Layer | Path | Owns |
 | --- | --- | --- |
-| Provisioning | `ansible/` | packages, pinned installs |
-| Config links | `stow/` | `$HOME`-mirroring symlinks (1 app = 1 package) |
-| Bootstrap | `setup.sh` | Ansible + optional bws |
-| Day-to-day | `stow.sh` | `stow` / `unstow` / `restow` |
-| Helpers | `scripts/` | `setup_bws.sh`, `setup_rtk.sh` |
-| Docs | `docs/` | this tree |
-| Agent entry | `AGENTS.md` | short topic map |
+| Provisioning | `ansible/` | apt packages, pinned installs, git identity |
+| Config links | `stow/` | `$HOME`-mirroring symlinks (1 app = 1 package; every dir is linked) |
+| Managed JSON | `managed/` | keys merged into app-owned JSON (`~/.claude/settings.json`) by `scripts/json_merge.py` |
+| Secrets | `stow/secrets/` | `with-secrets`, per-tool shims ([bws.md](bws.md)) |
+| Bootstrap | `setup.sh` | Ansible + optional bws token |
+| Day-to-day | `stow.sh` | `stow` / `unstow` / `restow` (conflicts → `~/.local/state/inovue/stow-backup/`) |
+| Health | `scripts/doctor.sh` | versions vs pins, secret hygiene, agent shell, hooks |
 
-## Data flow
+## Ansible roles
 
-```text
-ansible/group_vars/all.yml  →  pins + stow_packages
-setup.sh                    →  ansible roles + optional bws
-stow/<pkg>/                 →  ./stow.sh restow  →  $HOME symlinks
-```
+| Role | Tags | Notes |
+| --- | --- | --- |
+| base | `base`, `apt` | CLI + web dev apt packages, terminal-browser runtime libs |
+| shell | `shell` | zsh login shell, starship, zoxide, sheldon |
+| node | `node` | fnm + Node LTS, pnpm, bun, hunkdiff |
+| tools | `tools`, `herdr`, `terminal-browser`, `agent-browser` | everything else |
+| git | `git` | identity only (from `-e` vars or `gh api user`) |
+| docker | `docker` (opt-in, tagged `never`) | docker.io + compose v2 |
+| dotfiles | `dotfiles`, `stow`, `claude` | `stow.sh restow` + managed JSON merge |
 
-## Ansible roles (tags)
+## Pin policy (`ansible/group_vars/all.yml`)
 
-| Role | Tags |
-| --- | --- |
-| base packages | `base` |
-| shell tooling | `shell` |
-| Node | `node` |
-| herdr, genmedia, omp, terminal-browser, agent-browser, … | `tools`, `herdr`, `terminal-browser`, `agent-browser` |
-| Stow apply | `dotfiles`, `stow` |
+- **Exact**: each installer has a `check` command; setup (re)installs when the reported version ≠ pin, then verifies. Installers run under `set -euo pipefail`.
+- **Bootstrap**: tools that update themselves (claude, herdr, flyctl) are installed only when missing; setup never downgrades them.
+- Stamps in `~/.config/inovue/tool-pins/` remain only for things without a version command (herdr plugins).
 
-## Config edit rule
+## Shell model
 
-1. Change files under `stow/<pkg>/…`
-2. `./stow.sh restow <pkg>`
-3. Reload if needed (`herdr server reload-config`)
+- `.zshenv` (every zsh): PATH only — secret shims first, then `~/.local/bin`, fnm default Node, etc. No secrets.
+- `.zshrc`: fnm, then **returns early for coding agents** (`CLAUDECODE`, `CURSOR_AGENT`, `INOVUE_AGENT_SHELL`). Humans get aliases, zoxide `cd`, starship, sheldon, fzf.

@@ -1,11 +1,13 @@
 #!/usr/bin/env bash
 # Install / update RTK (Rust Token Killer) via the official installer, then
-# register the Cursor global preToolUse hook so Cursor / Cursor CLI rewrite
-# shell commands through rtk.
+# register the global hooks so Claude Code and Cursor rewrite shell commands
+# through rtk. Hook-only: no RTK.md / CLAUDE.md edits (that file is stowed, and
+# its ~1KB of rtk meta docs would cost tokens every session).
 #
 # Official refs:
 #   https://github.com/rtk-ai/rtk
 #   https://www.rtk-ai.app/docs/getting-started/installation/
+#   Claude: rtk init -g --hook-only     →  ~/.claude/settings.json (also in managed/claude-settings.json)
 #   Cursor: rtk init -g --agent cursor  →  ~/.cursor/hooks.json
 #
 # Usage:
@@ -175,18 +177,16 @@ install_binary() {
   log "Binary OK: $("$bin" --version) ($bin)"
 }
 
-init_cursor_global() {
+init_global_hooks() {
   local bin
   bin="$(rtk_bin)" || die "rtk not on PATH"
-  # Upstream quirk (≤0.48 / current RCs): `rtk init -g --agent cursor` still runs the
-  # Claude Code path first and atomic-writes under ~/.claude and ~/.cursor without
-  # create_dir_all — missing dirs abort before the Cursor hooks.json patch.
-  # https://github.com/rtk-ai/rtk/issues/2097
+  # Upstream quirk (<=0.48): atomic writes under ~/.claude and ~/.cursor
+  # without create_dir_all. https://github.com/rtk-ai/rtk/issues/2097
   mkdir -p "${HOME}/.cursor" "${HOME}/.claude"
-  log "Cursor global hook: rtk init -g --agent cursor"
-  # Official Cursor setup. Merges preToolUse into ~/.cursor/hooks.json.
-  # --auto-patch: non-interactive Claude settings.json patch (side effect of current rtk).
-  "$bin" init -g --agent cursor --auto-patch
+  log "Claude Code hook: rtk init -g --hook-only --auto-patch"
+  "$bin" init -g --hook-only --auto-patch
+  log "Cursor hook: rtk init -g --agent cursor --hook-only --auto-patch"
+  "$bin" init -g --agent cursor --hook-only --auto-patch
 }
 
 verify() {
@@ -198,8 +198,10 @@ verify() {
   if ! grep -q 'rtk hook cursor\|rtk-rewrite\.sh' "$hooks"; then
     die "RTK preToolUse entry not found in $hooks"
   fi
-  log "Verified: $("$bin" --version); Cursor hook in $hooks"
-  log "Restart Cursor / Cursor CLI if a session is already open, then test with: git status"
+  grep -q 'rtk hook claude' "${HOME}/.claude/settings.json" \
+    || die "RTK PreToolUse hook not found in ~/.claude/settings.json"
+  log "Verified: $("$bin" --version); hooks in ~/.claude/settings.json and $hooks"
+  log "Restart Claude Code / Cursor if a session is already open, then test with: git status"
 }
 
 main() {
@@ -223,7 +225,7 @@ main() {
       fi
     fi
   fi
-  init_cursor_global
+  init_global_hooks
   verify
 }
 

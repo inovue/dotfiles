@@ -51,6 +51,10 @@
       - eza
       - libatomic1
       - libvips-tools
+      # web dev: DB clients + shell lint
+      - sqlite3
+      - postgresql-client
+      - shellcheck
       # terminal-browser (Electron / kitty graphics) runtime
       - fonts-liberation
       - fonts-noto-cjk

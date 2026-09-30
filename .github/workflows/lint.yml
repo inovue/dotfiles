@@ -1,0 +1,33 @@
+name: lint
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  lint:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: shellcheck
+        run: |
+          shellcheck -S warning \
+            setup.sh stow.sh scripts/*.sh \
+            stow/secrets/.local/bin/with-secrets \
+            stow/secrets/.local/share/inovue/shims/* \
+            stow/claude/.claude/statusline.sh
+
+      - name: managed JSON is valid
+        run: for f in managed/*.json stow/agent-browser/.agent-browser/config.json; do jq empty "$f"; done
+
+      - name: ansible syntax
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq ansible
+          ANSIBLE_CONFIG=ansible/ansible.cfg ansible-playbook -i ansible/inventory ansible/site.yml --syntax-check
+
+      - name: stow dry-run into a scratch HOME
+        run: |
+          sudo apt-get install -y -qq stow
+          HOME="$(mktemp -d)" ./stow.sh stow

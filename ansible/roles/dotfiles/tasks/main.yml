@@ -1,83 +1,26 @@
 ---
-# Ansible provisions; Stow links. One package per app under stow/.
-# Conflicts with unmanaged regular files are cleared first (migration-safe).
+# Ansible provisions; Stow links. One package per app under stow/ — every
+# directory there is linked (stow.sh is the single implementation; unmanaged
+# conflicting files are moved to ~/.local/state/inovue/stow-backup/).
 
-- name: Ensure stow is installed
-  become: true
-  ansible.builtin.apt:
-    name: stow
-    state: present
+- name: Stow all packages into $HOME
+  ansible.builtin.command:
+    argv: ["{{ dotfiles_root }}/stow.sh", restow]
+  register: stow_result
+  changed_when: "'backed up' in stow_result.stdout"
 
-- name: Clear unmanaged conflicts for stow packages
-  ansible.builtin.shell: |
-    set -euo pipefail
-    # Never delete paths that already resolve into this package (folded dir symlink).
-    stow_dir="{{ dotfiles_root }}/stow"
-    pkg="{{ item }}"
-    root="$stow_dir/$pkg"
-    [[ -d "$root" ]] || exit 0
-    while IFS= read -r -d '' src; do
-      rel="${src#"$root"/}"
-      dest="{{ home }}/$rel"
-      [[ -e "$dest" || -L "$dest" ]] || continue
-      real="$(readlink -f "$dest" || true)"
-      [[ -n "$real" && "$real" == "$root/"* ]] && continue
-      if [[ -L "$dest" || -f "$dest" ]]; then
-        rm -f "$dest"
-      else
-        echo "refusing to remove non-file conflict: $dest" >&2
-        exit 1
-      fi
-    done < <(find "$root" -type f -print0)
-  args:
-    executable: /bin/bash
-  loop: "{{ stow_packages }}"
-  changed_when: false
-
-- name: Stow packages into $HOME
+# App-owned JSON (the app rewrites this file, so it cannot be a symlink):
+# merge the repo fragment in, keep everything else (auth, caches, other hooks).
+- name: Merge managed settings into app-owned JSON
   ansible.builtin.command:
     argv:
-      - stow
-      - --restow
-      - --no-folding
-      - --dir
-      - "{{ dotfiles_root }}/stow"
-      - --target
-      - "{{ home }}"
-      - "{{ item }}"
-  loop: "{{ stow_packages }}"
-  changed_when: false
-
-# cli-config.json holds auth/caches — do not stow; only ensure statusLine points at the script.
-- name: Ensure Cursor CLI statusLine uses stowed script
-  ansible.builtin.shell: |
-    set -euo pipefail
-    cfg="{{ home }}/.cursor/cli-config.json"
-    mkdir -p "{{ home }}/.cursor"
-    if [[ ! -f "$cfg" ]]; then
-      echo '{}' > "$cfg"
-    fi
-    python3 - "$cfg" <<'PY'
-    import json, sys
-    path = sys.argv[1]
-    with open(path, encoding="utf-8") as f:
-        data = json.load(f)
-    wanted = {
-        "type": "command",
-        "command": "~/.cursor/statusline.sh",
-        "padding": 2,
-    }
-    if data.get("statusLine") == wanted:
-        print("UNCHANGED")
-        raise SystemExit(0)
-    data["statusLine"] = wanted
-    with open(path, "w", encoding="utf-8") as f:
-        json.dump(data, f, indent=2)
-        f.write("\n")
-    print("CHANGED")
-    PY
-  args:
-    executable: /bin/bash
-  register: cursor_statusline_cfg
-  changed_when: "'CHANGED' in cursor_statusline_cfg.stdout"
-  tags: [dotfiles, stow, cursor]
+      - python3
+      - "{{ dotfiles_root }}/scripts/json_merge.py"
+      - "{{ item.target }}"
+      - "{{ dotfiles_root }}/managed/{{ item.fragment }}"
+  loop:
+    - { target: "{{ home }}/.claude/settings.json", fragment: claude-settings.json }
+  loop_control:
+    label: "{{ item.fragment }}"
+  register: json_merge
+  changed_when: json_merge.stdout == 'CHANGED'

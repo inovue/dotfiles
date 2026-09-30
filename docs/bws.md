@@ -1,8 +1,8 @@
 # Bitwarden Secrets Manager 運用ガイド
 
-機密情報は Bitwarden SM で一元管理し、ローカルに `.env` を置かず `bws` で注入する。
+機密情報は Bitwarden SM で一元管理し、ローカルに `.env` を置かず、必要なプロセスにだけ必要な鍵を注入する（`with-secrets` / shim）。
 
-**Agents (daily):** skip admin setup — jump to [開発者](#開発者) (`bws run`). Index: [README.md](README.md).
+**Agents (daily):** skip admin setup — jump to [日常の開発](#日常の開発) (`with-secrets KEY -- cmd`; never print values). Index: [README.md](README.md).
 
 ---
 
@@ -41,7 +41,8 @@
 | **アクセストークン** | マシンアカウントの認証キー（`0.xxxx...`）。`BWS_ACCESS_TOKEN` に設定 |
 | **Bitwarden Send** | 期限・閲覧回数付きの一時共有リンク。トークン送付に使う |
 | **`bws`** | SM 公式 CLI |
-| **`bws run`** | 実行時のみメモリ上に環境変数を注入してコマンドを実行 |
+| **`bws run`** | プロジェクトの **全** シークレットを env に注入して実行。広すぎるので通常は `with-secrets` を使う |
+| **`with-secrets`** | 指定した鍵だけを注入して実行（`stow/secrets`） |
 
 ---
 
@@ -54,8 +55,8 @@
    ├─ トークン発行 ───────────────────>│                              │
    ├─ Send で URL 共有 ────────────────┼─────────────────────────────>│
    │                                   │<── setup.sh / setup_bws.sh ──┤
-   │                                   │    (~/.config/inovue/bws.env)│
-   │                                   │<── bws run で開発・実行 ─────┤
+   │                                   │   (~/.config/inovue/bws-token)│
+   │                                   │<── with-secrets / shim ──────┤
 ```
 
 ---
@@ -99,8 +100,7 @@ Send URL を管理者から受け取ったら:
 
 ```bash
 ./setup.sh --bws-send-url "https://send.bitwarden.com/#XXXXX/YYYYY"
-exec zsh
-bws secret list   # 一覧が表示されれば OK
+with-secrets --check FAL_KEY   # "FAL_KEY: ok (bws)" なら OK
 ```
 
 `./setup.sh` 実行時に Send URL の入力を促すプロンプトも出る（Enter でスキップ可）。
@@ -111,34 +111,58 @@ bws secret list   # 一覧が表示されれば OK
 
 ```bash
 ./scripts/setup_bws.sh "https://send.bitwarden.com/#XXXXX/YYYYY"
-exec zsh
-bws secret list
+with-secrets --check FAL_KEY
 ```
 
-トークンは `~/.config/inovue/bws.env` に保存される（`setup.sh` 再実行で消えない）。
+トークンは `~/.config/inovue/bws-token` に保存される（600、`setup.sh` 再実行で消えない）。
 
 > 個人の Bitwarden アカウントは不要。トークン設定だけで `bws` が使える。
 
 ### 日常の開発
 
-`.env` は置かず、`bws run` で実行する。bws 経由のエイリアスは `.zshenv` に定義（`stow/zsh` で管理）。
+トークンは **どのプロセスの環境変数にも載せない**。`~/.config/inovue/bws-token`（600、トークンのみ）に置き、環境変数には **パスだけ**（`BWS_ACCESS_TOKEN_FILE`、`.zshenv`）を置く。bws を呼ぶ瞬間にだけ読み、その `bws` プロセスにだけ渡す。
+
+| 経路 | 渡るもの | 用途 |
+|------|----------|------|
+| shim `genmedia` | `FAL_KEY` のみ | そのまま `genmedia ...` |
+| shim `bws` | トークン（その `bws` プロセスだけ） | 人間が `bws secret list` 等をそのまま打てる |
+| `with-secrets KEY[,KEY] -- cmd` | 指定した鍵のみ（トークンは渡さない） | それ以外のツール・スクリプト |
+| fal-skills（falkit ≥ 1.2.0） | 自分で `BWS_ACCESS_TOKEN_FILE` を読む | Claude / どのシェルからでも設定不要で動く |
 
 ```bash
-bws run -- "npm run dev"
-bws run -- "python main.py"
-genmedia --help   # alias 経由。FAL_KEY は SM から注入
-omp               # alias 経由。OPENROUTER_API_KEY は SM から注入
+with-secrets --check FAL_KEY                       # 値は出さずに有無だけ
+with-secrets FAL_KEY -- uv run script.py
+with-secrets FAL_KEY,OPENROUTER_API_KEY -- pnpm dev
+with-secrets --list                                # 鍵名の一覧
 ```
 
-> **`genmedia setup` は非推奨** — ローカルに `FAL_KEY` を平文保存するため。SM に `FAL_KEY` を登録し、`genmedia` エイリアス（`bws run -- genmedia`）を使う。
+- 既に環境変数にある鍵はそちらを優先（プロジェクトの `.env` / direnv で上書き可）。
+- `with-secrets KEY -- printenv|env|echo|cat …` は拒否（エージェントの transcript に値が残る事故の防止）。
+- shim は `stow/secrets/.local/share/inovue/shims/` に置き、`.zshenv` で PATH 先頭に入る。追加は 3 行:
 
-エイリアス追加例（`stow/zsh/.zshenv`）:
-
-```zsh
-alias foo='bws run -- foo'
+```sh
+#!/bin/sh
+exec with-secrets FOO_API_KEY -- foo "$@"
 ```
 
----
+- 自作ツールで bws を使うときも `BWS_ACCESS_TOKEN_FILE` を読む（`BWS_ACCESS_TOKEN` を export させない）。
+- Claude Code は `managed/claude-settings.json` で `Read/Edit(~/.config/inovue/**)` と `bws secret|run|project` を deny。
+
+> **`genmedia setup` は非推奨** — ローカルに `FAL_KEY` を平文保存するため。
+
+#### 何を守り、何を守らないか
+
+- **守る**: 環境変数ダンプ由来の漏えい（ログ、クラッシュレポート、子プロセスのメタデータ、transcript）。実際に `bws run -- omp` で全鍵を注入していた頃、omp の `~/.omp/run/daemons/*/meta.json` やセッションログに鍵が平文で残っていた。
+- **守らない**: 同じユーザーで動く悪意あるコード。しかもこのマシンの `ubuntu` は NOPASSWD sudo なので、エージェント＝root。マシン内の権限分離は効かない。
+
+#### 境界はマシンの外に置く（鍵の階層）
+
+| 階層 | 例 | 置き場所 |
+|------|----|----------|
+| エージェント用（漏れても被害が小さい） | `FAL_KEY`, `OPENROUTER_API_KEY` | このマシン。専用プロジェクト＋専用マシンアカウント（そのプロジェクトのみ読み取り）、トークン有効期限 90 日、プロバイダ側で利用上限 |
+| 強い鍵 | 本番 DB、決済、デプロイトークン | **このマシンに置かない**。Fly secrets / GitHub Actions secrets に直接 |
+
+漏えい時の手順: プロバイダでキー再発行 → SM の値を更新（開発者側の作業なし）→ 旧キー失効。トークン漏えいなら Revoke → 再発行 → `setup_bws.sh`。
 
 ## 変更・離脱時
 
@@ -149,16 +173,15 @@ alias foo='bws run -- foo'
 
 ### トークン再発行（開発者）
 
-`setup.sh` は `~/.config/inovue/bws.env` があると bws 設定をスキップする。トークン更新時は以下:
+`setup.sh` は `~/.config/inovue/bws-token` があると bws 設定をスキップする（旧 `bws.env` は自動で移行）。トークン更新時は以下:
 
 1. 管理者から新しい Send URL を受け取る（旧トークンは Revoke 済みであること）
 2. 既存ファイルを削除して再設定:
 
 ```bash
-rm ~/.config/inovue/bws.env
+rm ~/.config/inovue/bws-token
 ./scripts/setup_bws.sh "https://send.bitwarden.com/#XXXXX/YYYYY"
-exec zsh
-bws secret list   # 導通確認
+with-secrets --check FAL_KEY   # 導通確認
 ```
 
-`setup.sh --bws-send-url "..."` でも可（事前に `bws.env` を削除すること）。
+`setup.sh --bws-send-url "..."` でも可（事前に `bws-token` を削除すること）。
