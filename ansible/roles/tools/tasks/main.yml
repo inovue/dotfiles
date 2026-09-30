@@ -105,11 +105,13 @@
       environment:
         UV_NO_MODIFY_PATH: "1"
       cmd: curl -LsSf "https://astral.sh/uv/{{ uv_pin }}/install.sh" | sh
+    # `gh extension list/remove` need `gh auth login`; install does not.
+    # Read gh's manifest and swap the directory so a fresh machine works pre-auth.
     - name: gh-workspace
       pin: "{{ gh_workspace_pin }}"
-      check: gh extension list
+      check: cat "{{ home }}/.local/share/gh/extensions/gh-workspace/manifest.yml"
       cmd: |
-        gh extension remove workspace >/dev/null 2>&1 || true
+        rm -rf "{{ home }}/.local/share/gh/extensions/gh-workspace"
         gh extension install inovue/gh-workspace --pin "v{{ gh_workspace_pin }}"
     - name: rtk
       pin: "{{ rtk_pin }}"

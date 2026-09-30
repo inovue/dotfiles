@@ -158,8 +158,16 @@ install_chrome() {
   arch="$(uname -m)"
   case "$arch" in
     x86_64 | amd64)
-      log "agent-browser install --with-deps"
-      agent-browser install --with-deps
+      # --with-deps runs its own `sudo apt-get`, outside Ansible's become: on a
+      # password-sudo host it would block on a prompt nobody sees. The Chrome
+      # runtime libs already come from the base role's apt list.
+      if sudo -n true 2>/dev/null; then
+        log "agent-browser install --with-deps"
+        agent-browser install --with-deps
+      else
+        log "agent-browser install (no passwordless sudo; deps come from the base role)"
+        agent-browser install
+      fi
       ;;
     aarch64 | arm64)
       warn "upstream agent-browser install has no linux-arm64 CfT path; installing manually"
