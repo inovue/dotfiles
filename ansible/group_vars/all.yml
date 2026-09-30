@@ -3,6 +3,11 @@
 dotfiles_root: "{{ playbook_dir | dirname }}"
 home: "{{ ansible_facts['env']['HOME'] }}"
 
+# Ubuntu 25.10+ defaults to sudo-rs, which wraps Ansible's password prompt
+# ("[sudo: <prompt>] Password:") so become times out on password-sudo hosts.
+# Use the classic sudo (shipped as sudo.ws) when it exists.
+ansible_become_exe: "{{ lookup('ansible.builtin.pipe', 'command -v sudo.ws || command -v sudo') }}"
+
 # Git identity. Empty = keep what ~/.gitconfig has, or derive from `gh api user`
 # (login + <id>+<login>@users.noreply.github.com) once gh is authenticated.
 git_user_name: ""
