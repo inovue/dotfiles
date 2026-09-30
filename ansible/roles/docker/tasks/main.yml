@@ -1,0 +1,31 @@
+---
+# Opt-in: ./setup.sh --tags docker  (the role is tagged `never` in site.yml).
+# Ubuntu archive packages — no third-party apt repo to keep in sync.
+- name: Install Docker Engine + Compose v2
+  become: true
+  ansible.builtin.apt:
+    name:
+      - docker.io
+      - docker-compose-v2
+      - docker-buildx
+    state: present
+    lock_timeout: 120
+
+- name: Enable Docker service
+  become: true
+  ansible.builtin.systemd_service:
+    name: docker
+    enabled: true
+    state: started
+  ignore_errors: "{{ ansible_check_mode }}"  # unit exists only after a real install
+
+# Root-equivalent: every process of this user (including coding agents) can
+# control the daemon. Set docker_add_user_to_group=false to require sudo.
+- name: Add user to docker group
+  become: true
+  ansible.builtin.user:
+    name: "{{ ansible_facts['user_id'] }}"
+    groups: docker
+    append: true
+  when: docker_add_user_to_group | bool
+  ignore_errors: "{{ ansible_check_mode }}"  # group exists only after a real install

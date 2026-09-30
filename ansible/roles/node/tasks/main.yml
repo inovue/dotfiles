@@ -1,50 +1,53 @@
 ---
-- name: Install or refresh fnm
+- name: Install fnm
   ansible.builtin.include_tasks:
     file: "{{ playbook_dir }}/tasks/curl_installer.yml"
-  loop:
-    - name: fnm
+  vars:
+    installer:
+      name: fnm
       pin: "{{ fnm_pin }}"
-      cmd: curl -fsSL https://fnm.vercel.app/install | bash -s -- --skip-shell
-  loop_control:
-    loop_var: installer
+      check: "{{ home }}/.local/share/fnm/fnm --version"
+      cmd: curl -fsSL https://fnm.vercel.app/install | bash -s -- --skip-shell --release "v{{ fnm_pin }}"
 
 - name: Install Node.js LTS via fnm
   ansible.builtin.shell: |
-    export PATH="{{ home }}/.local/share/fnm:$PATH"
-    eval "$({{ home }}/.local/share/fnm/fnm env)"
-    {{ home }}/.local/share/fnm/fnm install --lts
+    set -euo pipefail
+    eval "$(fnm env)"
+    fnm install --lts
   args:
     creates: "{{ home }}/.local/share/fnm/aliases/default"
     executable: /bin/bash
+  environment: "{{ agent_tool_env }}"
 
-- name: Install hunkdiff via npm
-  ansible.builtin.shell: |
-    export PATH="{{ home }}/.local/share/fnm:$PATH"
-    eval "$({{ home }}/.local/share/fnm/fnm env)"
-    npm install -g hunkdiff
-  args:
-    creates: "{{ home }}/.local/share/fnm/aliases/default/bin/hunk"
-    executable: /bin/bash
-
-- name: Install or refresh pnpm
+- name: Install hunkdiff
   ansible.builtin.include_tasks:
     file: "{{ playbook_dir }}/tasks/curl_installer.yml"
-  loop:
-    - name: pnpm
+  vars:
+    installer:
+      name: hunkdiff
+      pin: "{{ hunkdiff_pin }}"
+      check: hunk --version
+      cmd: npm install -g "hunkdiff@{{ hunkdiff_pin }}"
+
+- name: Install pnpm
+  ansible.builtin.include_tasks:
+    file: "{{ playbook_dir }}/tasks/curl_installer.yml"
+  vars:
+    installer:
+      name: pnpm
       pin: "{{ pnpm_pin }}"
+      check: pnpm --version
       environment:
         SHELL: /usr/bin/zsh
+        PNPM_VERSION: "{{ pnpm_pin }}"
       cmd: curl -fsSL https://get.pnpm.io/install.sh | sh -
-  loop_control:
-    loop_var: installer
 
-- name: Install or refresh bun
+- name: Install bun
   ansible.builtin.include_tasks:
     file: "{{ playbook_dir }}/tasks/curl_installer.yml"
-  loop:
-    - name: bun
+  vars:
+    installer:
+      name: bun
       pin: "{{ bun_pin }}"
+      check: "{{ home }}/.bun/bin/bun --version"
       cmd: curl -fsSL https://bun.sh/install | bash -s "bun-v{{ bun_pin }}"
-  loop_control:
-    loop_var: installer

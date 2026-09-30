@@ -8,10 +8,22 @@
   environment:
     DEBIAN_FRONTEND: noninteractive
 
+  vars:
+    # PATH for installer checks / post-install commands (Ansible does not read .zshenv).
+    agent_tool_env:
+      PATH: >-
+        {{ home }}/.local/bin:{{ home }}/.local/share/fnm:{{ home }}/.local/share/fnm/aliases/default/bin:{{
+        home }}/.bun/bin:{{ home }}/.fly/bin:{{ home }}/.genmedia/bin:{{ home }}/.local/share/pnpm/bin:{{
+        home }}/.local/share/pnpm:/usr/local/bin:/usr/bin:/bin
+      # Non-interactive installers: skip telemetry prompts.
+      DISABLE_TELEMETRY: "1"
+      RTK_TELEMETRY_DISABLED: "1"
+
   pre_tasks:
     - name: Set architecture facts for release installs
       ansible.builtin.set_fact:
-        sheldon_arch: "{{ 'x86_64-unknown-linux-musl' if ansible_facts['architecture'] == 'x86_64' else 'aarch64-unknown-linux-musl' }}"
+        musl_triple: "{{ 'x86_64-unknown-linux-musl' if ansible_facts['architecture'] == 'x86_64' else 'aarch64-unknown-linux-musl' }}"
+        gnu_triple: "{{ 'x86_64-unknown-linux-gnu' if ansible_facts['architecture'] == 'x86_64' else 'aarch64-unknown-linux-gnu' }}"
         lazygit_arch: "{{ 'linux_x86_64' if ansible_facts['architecture'] == 'x86_64' else 'linux_arm64' }}"
         bws_arch: "{{ 'x86_64' if ansible_facts['architecture'] == 'x86_64' else 'aarch64' }}"
         glow_deb_arch: "{{ 'amd64' if ansible_facts['architecture'] in ['x86_64', 'amd64'] else 'arm64' }}"
@@ -27,8 +39,12 @@
       tags: [node]
     - role: tools
       tags: [tools, herdr, terminal-browser, agent-browser]
+    - role: git
+      tags: [git]
+    - role: docker
+      tags: [never, docker]
     - role: dotfiles
-      tags: [dotfiles, stow]
+      tags: [dotfiles, stow, claude]
 
   post_tasks:
     - name: Done message
@@ -38,5 +54,5 @@
           Configs: stow packages under stow/ (linked into $HOME).
           Day-to-day: ./stow.sh restow
           Run `exec zsh` to apply shell config.
-          Smoke: see docs/setup-stow.md
+          Smoke: ./scripts/doctor.sh
       tags: always

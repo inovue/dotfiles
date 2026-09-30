@@ -30,9 +30,10 @@ Options:
 Ansible args pass through, e.g.:
   ./setup.sh --tags base,shell
   ./setup.sh --tags tools
+  ./setup.sh --tags docker          # opt-in, not part of a plain run
   ./setup.sh -e git_user_name="Your Name" -e git_user_email="you@example.com"
 
-After success: run `exec zsh` (or open a new shell).
+After success: run `exec zsh`, then ./scripts/doctor.sh.
 Docs: docs/setup-stow.md
 EOF
 }
@@ -50,9 +51,20 @@ ensure_ansible() {
 }
 
 run_bws_setup() {
-  local bws_env="${HOME}/.config/inovue/bws.env"
+  local token_file="${HOME}/.config/inovue/bws-token"
+  local legacy_env="${HOME}/.config/inovue/bws.env"
 
-  if [ -f "$bws_env" ] && grep -q 'BWS_ACCESS_TOKEN' "$bws_env" 2>/dev/null; then
+  # Migrate the old `export BWS_ACCESS_TOKEN="..."` file to a token-only file.
+  if [ ! -s "$token_file" ] && [ -f "$legacy_env" ]; then
+    (umask 077 && sed -n 's/^\(export \)\{0,1\}BWS_ACCESS_TOKEN=["'\'']\{0,1\}\([^"'\'']*\)["'\'']\{0,1\}$/\2/p' "$legacy_env" \
+      | tail -n1 >"$token_file")
+    if [ -s "$token_file" ]; then
+      rm -f "$legacy_env"
+      log "Migrated bws.env -> bws-token"
+    fi
+  fi
+
+  if [ -s "$token_file" ]; then
     log "BWS already configured, skipping"
     return 0
   fi
@@ -68,12 +80,8 @@ run_bws_setup() {
     return 0
   fi
 
-  if ! command -v zsh >/dev/null 2>&1; then
-    die "zsh is required for bws setup (Ansible base role should have installed it)"
-  fi
-
   log "Configuring Bitwarden Secrets Manager..."
-  zsh "$ROOT_DIR/scripts/setup_bws.sh" "$send_url"
+  bash "$ROOT_DIR/scripts/setup_bws.sh" "$send_url"
 }
 
 ANSIBLE_ARGS=()
@@ -116,4 +124,4 @@ BWS_SEND_URL="${BWS_SEND_URL:-$BWS_SEND_URL_ARG}"
 export BWS_SEND_URL
 run_bws_setup
 
-log "Setup finished. Next: exec zsh"
+log "Setup finished. Next: exec zsh && ./scripts/doctor.sh"

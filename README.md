@@ -1,6 +1,6 @@
 # dotfiles
 
-Ubuntu 向け CLI 環境（サーバ開発向け）。Ansible でプロビジョニング、GNU Stow で設定リンク。
+Ubuntu 向けのターミナル中心 web 開発環境（Claude Code 主体）。Ansible でプロビジョニング、GNU Stow で設定リンク、シークレットは Bitwarden SM から必要な鍵だけ注入。
 
 > 対象: Ubuntu 24.04 / 26.04。  
 > **Agents:** [AGENTS.md](AGENTS.md) · Doc index: [docs/README.md](docs/README.md)
@@ -12,6 +12,7 @@ git clone https://github.com/inovue/dotfiles.git
 cd dotfiles
 ./setup.sh
 exec zsh
+./scripts/doctor.sh
 ```
 
 - 詳細・tags・ピン・Stow: [docs/setup-stow.md](docs/setup-stow.md)
@@ -19,20 +20,19 @@ exec zsh
 - Bitwarden SM: [docs/bws.md](docs/bws.md)（`--bws-send-url` または `BWS_SEND_URL`）
 - herdr: [docs/herdr.md](docs/herdr.md)
 
-Git デフォルト: `user.name` = 実行ユーザー、`user.email` = `{user}@users.noreply.github.com`。上書き例:
+Git の identity は `gh auth login` 後に `./setup.sh --tags git` で GitHub アカウント（`<id>+<login>@users.noreply.github.com`）から設定される。明示する場合:
 
 ```bash
-./setup.sh -e git_user_name="Your Name" -e git_user_email="you@example.com"
+./setup.sh --tags git -e git_user_name="Your Name" -e git_user_email="you@example.com"
 ```
 
 ## セットアップ後（認証）
 
 | ツール | アクション |
 | --- | --- |
-| GitHub / Fly / Modal / Cursor CLI | `gh auth login` / `fly auth login` / `modal token new` / `agent login` |
-| omp | `omp`（初回で provider / model） |
+| GitHub / Fly / Modal | `gh auth login`（→ `./setup.sh --tags git`）/ `fly auth login` / `modal token new` |
 | Bitwarden SM | [docs/bws.md](docs/bws.md) |
-| genmedia | SM に `FAL_KEY` 後 `genmedia` |
+| genmedia / その他 API キー | SM に登録 → `genmedia` はそのまま、他は `with-secrets KEY -- cmd` |
 
 ## トラブルシューティング
 

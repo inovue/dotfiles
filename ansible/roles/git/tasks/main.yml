@@ -1,0 +1,48 @@
+---
+# Identity only (machine-local, ~/.gitconfig). Shared git settings live in
+# stow/git/.config/git/config so ~/.gitconfig stays free for gh / credential helpers.
+
+- name: Read current git identity
+  ansible.builtin.shell: |
+    printf '%s\n%s\n' "$(git config --global --get user.name || true)" "$(git config --global --get user.email || true)"
+  register: git_identity_current
+  changed_when: false
+
+# Placeholder identities from older setups (user_id + noreply) count as unset.
+- name: Decide whether git identity needs a value
+  ansible.builtin.set_fact:
+    git_identity_needs_value: >-
+      {{ (git_identity_current.stdout_lines[0] | default('')) in ['', ansible_facts['user_id']]
+         or (git_identity_current.stdout_lines[1] | default('')) in ['', ansible_facts['user_id'] ~ '@users.noreply.github.com'] }}
+
+- name: Look up GitHub account for git identity
+  ansible.builtin.command: gh api user --jq '.login, (.id|tostring), (.name // .login)'
+  register: gh_user
+  changed_when: false
+  failed_when: false
+  when: git_user_name == '' and git_user_email == '' and git_identity_needs_value | bool
+
+- name: Resolve git identity
+  ansible.builtin.set_fact:
+    git_target_name: >-
+      {{ git_user_name if (git_user_name != '' or git_user_email != '')
+         else (gh_user.stdout_lines[2] if (gh_user is not skipped and gh_user.rc == 0) else '') }}
+    git_target_email: >-
+      {{ git_user_email if (git_user_name != '' or git_user_email != '')
+         else ((gh_user.stdout_lines[1] ~ '+' ~ gh_user.stdout_lines[0] ~ '@users.noreply.github.com')
+               if (gh_user is not skipped and gh_user.rc == 0) else '') }}
+
+- name: Configure git user.name
+  ansible.builtin.command: git config --global user.name "{{ git_target_name }}"
+  when: git_target_name not in ['', git_identity_current.stdout_lines[0] | default('')]
+
+- name: Configure git user.email
+  ansible.builtin.command: git config --global user.email "{{ git_target_email }}"
+  when: git_target_email not in ['', git_identity_current.stdout_lines[1] | default('')]
+
+- name: Warn when git identity is still a placeholder
+  ansible.builtin.debug:
+    msg: >-
+      git identity not set. Run `gh auth login` then `./setup.sh --tags git`,
+      or `./setup.sh --tags git -e git_user_name=... -e git_user_email=...`.
+  when: git_identity_needs_value | bool and git_target_email == ''

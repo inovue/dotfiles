@@ -1,4 +1,4 @@
-#!/usr/bin/env zsh
+#!/usr/bin/env bash
 
 # 1. Bitwarden Send の URL を確認
 if [ -z "$1" ]; then
@@ -50,12 +50,13 @@ if [ "$RC" -ne 0 ] || [ -z "$TOKEN" ]; then
   exit 1
 fi
 
-# 3. ~/.config/inovue/bws.env への書き込み
-BWS_ENV="$HOME/.config/inovue/bws.env"
-mkdir -p "$(dirname "$BWS_ENV")"
+# 3. ~/.config/inovue/bws-token への書き込み（トークンのみ。シェルには export しない）
+TOKEN_FILE="$HOME/.config/inovue/bws-token"
+mkdir -p "$(dirname "$TOKEN_FILE")"
+( umask 077 && printf '%s\n' "$TOKEN" >"$TOKEN_FILE" )
+chmod 600 "$TOKEN_FILE"
+rm -f "$HOME/.config/inovue/bws.env"   # 旧形式（export 行）
 
-printf 'export BWS_ACCESS_TOKEN="%s"\n' "$TOKEN" > "$BWS_ENV"
-chmod 600 "$BWS_ENV"
-
-echo "成功: $BWS_ENV に BWS_ACCESS_TOKEN を書き込みました。"
-echo "設定を即時反映するには 'exec zsh' を実行してください。"
+echo "成功: $TOKEN_FILE にトークンを書き込みました。"
+echo "トークンはシェルに export されません（BWS_ACCESS_TOKEN_FILE でパスだけを参照）。"
+echo "確認: with-secrets --check FAL_KEY"

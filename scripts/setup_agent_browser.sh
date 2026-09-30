@@ -173,9 +173,9 @@ install_chrome() {
 
 # Thin discovery stub → ~/.agents/skills/agent-browser (and agent symlinks).
 # Runtime instructions stay in the CLI: `agent-browser skills get core`.
-# Agents: Cursor, Claude Code, Pi (primary on this machine).
+# Agents: Claude Code (primary), Cursor editor.
 install_skill() {
-  local agents=(cursor claude-code pi)
+  local agents=(claude-code cursor)
 
   if [[ "$FORCE" -eq 0 && -f "$SKILL_STUB" ]]; then
     log "agent-browser skill already installed (${SKILL_STUB}); use --force to reinstall"
@@ -184,7 +184,7 @@ install_skill() {
 
   log "npx skills add vercel-labs/agent-browser -g -y -a ${agents[*]}"
   npx --yes skills add vercel-labs/agent-browser -g -y \
-    -a cursor -a claude-code -a pi
+    -a claude-code -a cursor
   [[ -f "$SKILL_STUB" ]] || die "skill install did not create ${SKILL_STUB}"
   log "skill installed at ${SKILL_STUB} (agents: ${agents[*]})"
 }

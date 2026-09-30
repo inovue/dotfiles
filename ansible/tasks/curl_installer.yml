@@ -1,27 +1,75 @@
 ---
-# Expects `installer` dict: name, pin, cmd; optional become, environment
+# Expects `installer` dict:
+#   name, pin, cmd              required
+#   check                       command whose output contains the installed version
+#   policy                      exact (default) | bootstrap
+#                                 exact: install when missing or version != pin, then verify
+#                                 bootstrap: install only when missing (tool self-updates)
+#   become, environment         optional
+# Without `check`, a stamp in ~/.config/inovue/tool-pins/<name> decides (plugins etc.).
+
+- name: "Check installed version ({{ installer.name }})"
+  ansible.builtin.shell: "{{ installer.check }}"
+  args:
+    executable: /bin/bash
+  environment: "{{ agent_tool_env }}"
+  register: installer_check
+  failed_when: false
+  changed_when: false
+  when: installer.check is defined
+
 - name: "Read pin stamp ({{ installer.name }})"
   ansible.builtin.slurp:
     src: "{{ home }}/.config/inovue/tool-pins/{{ installer.name }}"
   register: pin_stamp
   failed_when: false
   changed_when: false
+  when: installer.check is not defined
 
-- name: "Install or refresh {{ installer.name }}"
-  ansible.builtin.shell: "{{ installer.cmd }}"
+- name: "Decide whether to install ({{ installer.name }})"
+  ansible.builtin.set_fact:
+    installer_needed: >-
+      {%- if installer.check is defined -%}
+        {%- set present = installer_check.rc == 0 -%}
+        {%- if (installer.policy | default('exact')) == 'bootstrap' -%}
+          {{ not present }}
+        {%- else -%}
+          {{ not present or not (installer_check.stdout | regex_search(installer_pin_re)) }}
+        {%- endif -%}
+      {%- else -%}
+        {{ pin_stamp.content is not defined or (pin_stamp.content | b64decode | trim) != installer.pin }}
+      {%- endif -%}
+  vars:
+    installer_pin_re: "(^|[^0-9.]){{ installer.pin | regex_escape }}([^0-9]|$)"
+
+- name: "Install {{ installer.name }} {{ installer.pin }}"
+  ansible.builtin.shell: |
+    set -euo pipefail
+    {{ installer.cmd }}
   args:
     executable: /bin/bash
   become: "{{ installer.become | default(false) }}"
-  environment: "{{ installer.environment | default({}) }}"
-  when: >
-    pin_stamp.content is not defined
-    or (pin_stamp.content | b64decode | trim) != installer.pin
+  environment: "{{ agent_tool_env | combine(installer.environment | default({})) }}"
+  when: installer_needed | bool
+
+- name: "Verify {{ installer.name }} {{ installer.pin }}"
+  ansible.builtin.shell: "{{ installer.check }}"
+  args:
+    executable: /bin/bash
+  environment: "{{ agent_tool_env }}"
+  register: installer_verify
+  changed_when: false
+  failed_when: >-
+    installer_verify.rc != 0
+    or ((installer.policy | default('exact')) == 'exact'
+        and not (installer_verify.stdout | regex_search(installer_pin_re)))
+  vars:
+    installer_pin_re: "(^|[^0-9.]){{ installer.pin | regex_escape }}([^0-9]|$)"
+  when: installer_needed | bool and installer.check is defined
 
 - name: "Write pin stamp ({{ installer.name }})"
   ansible.builtin.copy:
     dest: "{{ home }}/.config/inovue/tool-pins/{{ installer.name }}"
     content: "{{ installer.pin }}\n"
     mode: "0644"
-  when: >
-    pin_stamp.content is not defined
-    or (pin_stamp.content | b64decode | trim) != installer.pin
+  when: installer_needed | bool and installer.check is not defined

@@ -1,27 +1,48 @@
 ---
-- name: Check installed lazygit version
-  ansible.builtin.command: /usr/local/bin/lazygit --version
-  register: lazygit_installed
-  failed_when: false
-  changed_when: false
-
-- name: Download lazygit archive
-  become: true
-  ansible.builtin.get_url:
-    url: "https://github.com/jesseduffield/lazygit/releases/download/v{{ lazygit_version }}/lazygit_{{ lazygit_version }}_{{ lazygit_arch }}.tar.gz"
-    dest: "/tmp/lazygit-{{ lazygit_version }}.tar.gz"
-    mode: "0644"
-    timeout: 60
-  when: lazygit_installed.rc != 0 or lazygit_version not in (lazygit_installed.stdout | default(''))
-
 - name: Install lazygit
-  become: true
-  ansible.builtin.unarchive:
-    src: "/tmp/lazygit-{{ lazygit_version }}.tar.gz"
-    dest: /usr/local/bin
-    remote_src: true
-    mode: "0755"
-  when: lazygit_installed.rc != 0 or lazygit_version not in (lazygit_installed.stdout | default(''))
+  ansible.builtin.include_tasks:
+    file: "{{ playbook_dir }}/tasks/curl_installer.yml"
+  vars:
+    installer:
+      name: lazygit
+      pin: "{{ lazygit_version }}"
+      become: true
+      check: /usr/local/bin/lazygit --version
+      cmd: |
+        curl -fsSL "https://github.com/jesseduffield/lazygit/releases/download/v{{ lazygit_version }}/lazygit_{{ lazygit_version }}_{{ lazygit_arch }}.tar.gz" \
+          | tar -xz -C /usr/local/bin lazygit
+
+- name: Install bws (Bitwarden Secrets Manager CLI)
+  ansible.builtin.include_tasks:
+    file: "{{ playbook_dir }}/tasks/curl_installer.yml"
+  vars:
+    installer:
+      name: bws
+      pin: "{{ bws_version }}"
+      become: true
+      check: /usr/local/bin/bws --version
+      cmd: |
+        tmp="$(mktemp -d)"; trap 'rm -rf "$tmp"' EXIT
+        curl -fsSL -o "$tmp/bws.zip" \
+          "https://github.com/bitwarden/sdk-sm/releases/download/bws-v{{ bws_version }}/bws-{{ bws_arch }}-unknown-linux-gnu-{{ bws_version }}.zip"
+        unzip -q -o "$tmp/bws.zip" -d "$tmp"
+        install -m 0755 "$tmp/bws" /usr/local/bin/bws
+
+# Only `ast-grep` — the `sg` alias would shadow /usr/bin/sg (shadow-utils).
+- name: Install ast-grep
+  ansible.builtin.include_tasks:
+    file: "{{ playbook_dir }}/tasks/curl_installer.yml"
+  vars:
+    installer:
+      name: ast-grep
+      pin: "{{ ast_grep_version }}"
+      check: "{{ home }}/.local/bin/ast-grep --version"
+      cmd: |
+        tmp="$(mktemp -d)"; trap 'rm -rf "$tmp"' EXIT
+        curl -fsSL -o "$tmp/sg.zip" \
+          "https://github.com/ast-grep/ast-grep/releases/download/{{ ast_grep_version }}/app-{{ gnu_triple }}.zip"
+        unzip -q -o "$tmp/sg.zip" ast-grep -d "$tmp"
+        install -m 0755 "$tmp/ast-grep" "{{ home }}/.local/bin/ast-grep"
 
 - name: Ensure apt keyrings directory exists
   become: true
@@ -74,174 +95,110 @@
     state: present
     lock_timeout: 120
 
-- name: Install Helix on x86_64 (official GitHub .deb)
-  become: true
-  ansible.builtin.apt:
-    deb: "https://github.com/helix-editor/helix/releases/download/{{ helix_version }}/helix_{{ helix_deb_revision }}_amd64.deb"
-    state: present
-    lock_timeout: 120
-  when: ansible_facts['architecture'] in ["x86_64", "amd64"]
-
-- name: Ensure /opt/helix exists on ARM64
-  become: true
-  ansible.builtin.file:
-    path: /opt/helix
-    state: directory
-    mode: "0755"
-  when: ansible_facts['architecture'] == "aarch64"
-
-- name: Check installed Helix version on ARM64
-  ansible.builtin.command: /usr/local/bin/hx --version
-  register: helix_arm_installed
-  failed_when: false
-  changed_when: false
-  when: ansible_facts['architecture'] == "aarch64"
-
-- name: Install Helix on ARM64 (official tarball)
-  become: true
-  ansible.builtin.unarchive:
-    src: "https://github.com/helix-editor/helix/releases/download/{{ helix_version }}/helix-{{ helix_version }}-aarch64-linux.tar.xz"
-    dest: /opt/helix
-    remote_src: true
-    extra_opts: [--strip-components=1]
-  when: >
-    ansible_facts['architecture'] == "aarch64"
-    and (helix_arm_installed.rc != 0
-         or helix_version not in (helix_arm_installed.stdout | default('')))
-
-- name: Symlink hx into PATH on ARM64
-  become: true
-  ansible.builtin.file:
-    src: /opt/helix/hx
-    dest: /usr/local/bin/hx
-    state: link
-  when: ansible_facts['architecture'] == "aarch64"
-
-- name: Install or refresh tool curl installers
+- name: Install pinned CLI tools
   ansible.builtin.include_tasks:
     file: "{{ playbook_dir }}/tasks/curl_installer.yml"
   loop:
     - name: uv
       pin: "{{ uv_pin }}"
-      cmd: curl -LsSf https://astral.sh/uv/install.sh | sh
-    - name: flyctl
-      pin: "{{ flyctl_pin }}"
-      cmd: curl -L https://fly.io/install.sh | sh
-    - name: cursor-agent
-      pin: "{{ cursor_agent_pin }}"
-      cmd: curl -fsSL https://cursor.com/install | bash
-    - name: claude-code
-      pin: "{{ claude_code_pin }}"
-      cmd: curl -fsSL https://claude.ai/install.sh | bash -s "{{ claude_code_pin }}"
+      check: "{{ home }}/.local/bin/uv --version"
+      environment:
+        UV_NO_MODIFY_PATH: "1"
+      cmd: curl -LsSf "https://astral.sh/uv/{{ uv_pin }}/install.sh" | sh
     - name: gh-workspace
       pin: "{{ gh_workspace_pin }}"
+      check: gh extension list
       cmd: |
         gh extension remove workspace >/dev/null 2>&1 || true
         gh extension install inovue/gh-workspace --pin "v{{ gh_workspace_pin }}"
     - name: rtk
       pin: "{{ rtk_pin }}"
-      cmd: |
-        export PATH="{{ home }}/.local/bin:$PATH"
-        export RTK_PIN="{{ rtk_pin }}"
-        bash "{{ dotfiles_root }}/scripts/setup_rtk.sh"
+      check: "{{ home }}/.local/bin/rtk --version"
+      environment:
+        RTK_PIN: "{{ rtk_pin }}"
+      cmd: bash "{{ dotfiles_root }}/scripts/setup_rtk.sh"
     - name: genmedia
       pin: "{{ genmedia_pin }}"
-      cmd: |
-        export PATH="{{ home }}/.local/bin:$PATH"
-        curl -fsSL https://genmedia.sh/install | bash
-    - name: omp
-      pin: "{{ omp_pin }}"
-      cmd: |
-        export PATH="{{ home }}/.local/bin:$PATH"
-        curl -fsSL https://omp.sh/install | sh -s -- --binary --ref "v{{ omp_pin }}"
-    - name: herdr
-      pin: "{{ herdr_pin }}"
-      cmd: curl -fsSL https://herdr.dev/install.sh | sh
+      check: "{{ home }}/.genmedia/bin/genmedia --version"
+      environment:
+        GENMEDIA_VERSION: "{{ genmedia_pin }}"
+      cmd: curl -fsSL https://genmedia.sh/install | bash
     - name: terminal-browser
       pin: "{{ terminal_browser_pin }}"
-      cmd: |
-        export PATH="{{ home }}/.local/bin:$PATH"
-        export TERMINAL_BROWSER_SKIP_SETUP=1
-        curl -fsSL "https://terminal-browser.sh/install/v/v{{ terminal_browser_pin }}" | bash
+      check: "{{ home }}/.local/bin/terminal-browser --version"
+      environment:
+        TERMINAL_BROWSER_SKIP_SETUP: "1"
+      cmd: curl -fsSL "https://terminal-browser.sh/install/v/v{{ terminal_browser_pin }}" | bash
   loop_control:
     loop_var: installer
+    label: "{{ installer.name }}"
 
-- name: Install or refresh agent-browser
+- name: Install self-updating CLI tools (bootstrap only)
+  ansible.builtin.include_tasks:
+    file: "{{ playbook_dir }}/tasks/curl_installer.yml"
+  loop:
+    - name: claude-code
+      pin: "{{ claude_code_pin }}"
+      policy: bootstrap
+      check: "{{ home }}/.local/bin/claude --version"
+      cmd: curl -fsSL https://claude.ai/install.sh | bash -s "{{ claude_code_pin }}"
+    - name: herdr
+      pin: "{{ herdr_pin }}"
+      policy: bootstrap
+      check: "{{ home }}/.local/bin/herdr --version"
+      cmd: curl -fsSL https://herdr.dev/install.sh | sh
+    - name: flyctl
+      pin: "{{ flyctl_pin }}"
+      policy: bootstrap
+      check: "{{ home }}/.fly/bin/flyctl version"
+      cmd: curl -fsSL https://fly.io/install.sh | sh -s "{{ flyctl_pin }}"
+  loop_control:
+    loop_var: installer
+    label: "{{ installer.name }}"
+
+- name: Install agent-browser
   ansible.builtin.include_tasks:
     file: "{{ playbook_dir }}/tasks/curl_installer.yml"
   vars:
     installer:
       name: agent-browser
       pin: "{{ agent_browser_pin }}"
-      cmd: |
-        export PATH="{{ home }}/.local/share/fnm:{{ home }}/.local/bin:$PATH"
-        eval "$({{ home }}/.local/share/fnm/fnm env)"
-        export AGENT_BROWSER_PIN="{{ agent_browser_pin }}"
-        bash "{{ dotfiles_root }}/scripts/setup_agent_browser.sh"
+      check: agent-browser --version
+      environment:
+        AGENT_BROWSER_PIN: "{{ agent_browser_pin }}"
+      cmd: bash "{{ dotfiles_root }}/scripts/setup_agent_browser.sh"
   tags: [agent-browser]
 
-- name: Install or refresh herdr-hunk-diff plugin
+- name: Install herdr-hunk-diff plugin
   ansible.builtin.include_tasks:
     file: "{{ playbook_dir }}/tasks/curl_installer.yml"
   vars:
     installer:
       name: herdr-hunkdiff
       pin: "{{ herdr_hunkdiff_pin }}"
-      cmd: |
-        export PATH="{{ home }}/.local/share/fnm:{{ home }}/.local/bin:$PATH"
-        eval "$({{ home }}/.local/share/fnm/fnm env)"
-        herdr plugin install jhochenbaum/herdr-hunk-diff -y
+      cmd: herdr plugin install jhochenbaum/herdr-hunk-diff -y
   tags: [herdr]
 
-- name: Install or refresh herdr terminal-browser plugin
+- name: Install herdr terminal-browser plugin
   ansible.builtin.include_tasks:
     file: "{{ playbook_dir }}/tasks/curl_installer.yml"
   vars:
     installer:
       name: herdr-terminal-browser
       pin: "{{ terminal_browser_pin }}"
-      cmd: |
-        export PATH="{{ home }}/.local/bin:$PATH"
-        export TERMINAL_BROWSER_SKIP_SETUP=1
-        herdr plugin install zenbu-labs/terminal-browser/herdr-plugin --ref "v{{ terminal_browser_pin }}" -y
+      environment:
+        TERMINAL_BROWSER_SKIP_SETUP: "1"
+      cmd: herdr plugin install zenbu-labs/terminal-browser/herdr-plugin --ref "v{{ terminal_browser_pin }}" -y
   tags: [herdr, terminal-browser]
 
-- name: List installed uv Python versions
-  ansible.builtin.command: "{{ home }}/.local/bin/uv python list --only-installed"
-  register: uv_py_list
-  changed_when: false
-  failed_when: false
-
-- name: Ensure Python 3.12 for Modal CLI
-  ansible.builtin.command: "{{ home }}/.local/bin/uv python install 3.12"
-  when: uv_py_list.rc != 0 or ('3.12' not in (uv_py_list.stdout | default('')))
-
-- name: Install Modal CLI via uv
-  ansible.builtin.shell: "{{ home }}/.local/bin/uv tool install modal --python 3.12"
-  args:
-    creates: "{{ home }}/.local/bin/modal"
-    executable: /bin/bash
-
-- name: Check installed bws version
-  ansible.builtin.command: /usr/local/bin/bws --version
-  register: bws_installed
-  failed_when: false
-  changed_when: false
-
-- name: Download bws archive
-  become: true
-  ansible.builtin.get_url:
-    url: "https://github.com/bitwarden/sdk-sm/releases/download/bws-v{{ bws_version }}/bws-{{ bws_arch }}-unknown-linux-gnu-{{ bws_version }}.zip"
-    dest: "/tmp/bws-{{ bws_version }}.zip"
-    mode: "0644"
-    timeout: 60
-  when: bws_installed.rc != 0 or bws_version not in (bws_installed.stdout | default(''))
-
-- name: Install bws
-  become: true
-  ansible.builtin.unarchive:
-    src: "/tmp/bws-{{ bws_version }}.zip"
-    dest: /usr/local/bin
-    remote_src: true
-    mode: "0755"
-  when: bws_installed.rc != 0 or bws_version not in (bws_installed.stdout | default(''))
+- name: Install Modal CLI
+  ansible.builtin.include_tasks:
+    file: "{{ playbook_dir }}/tasks/curl_installer.yml"
+  vars:
+    installer:
+      name: modal
+      pin: "{{ modal_pin }}"
+      check: "{{ home }}/.local/bin/modal --version"
+      cmd: |
+        uv python install 3.12
+        uv tool install --force --python 3.12 "modal=={{ modal_pin }}"

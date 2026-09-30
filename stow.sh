@@ -45,10 +45,13 @@ if ! command -v stow >/dev/null 2>&1; then
   exit 1
 fi
 
+BACKUP_DIR="${XDG_STATE_HOME:-$HOME/.local/state}/inovue/stow-backup/$(date +%Y%m%d-%H%M%S)"
+
 clear_conflicts() {
-  # Remove unmanaged $HOME paths that would block stow. Never delete paths that
-  # already resolve into this package (e.g. via a folded directory symlink).
-  local pkg="$1" root="$STOW_DIR/$pkg" src rel dest real
+  # Move unmanaged $HOME files that would block stow into $BACKUP_DIR. Never
+  # touch paths that already resolve into this package (e.g. a folded dir symlink).
+  local pkg="$1"
+  local root="$STOW_DIR/$pkg" src rel dest real
   [[ -d "$root" ]] || return 0
   while IFS= read -r -d '' src; do
     rel="${src#"$root"/}"
@@ -57,12 +60,14 @@ clear_conflicts() {
     real="$(readlink -f "$dest" || true)"
     [[ -n "$real" && "$real" == "$root/"* ]] && continue
     if [[ -L "$dest" || -f "$dest" ]]; then
-      rm -f "$dest"
+      mkdir -p "$(dirname "$BACKUP_DIR/$rel")"
+      mv "$dest" "$BACKUP_DIR/$rel"
+      echo "    backed up ~/$rel -> $BACKUP_DIR/$rel"
     else
       echo "error: non-file conflict: $dest" >&2
       exit 1
     fi
-  done < <(find "$root" -type f -print0)
+  done < <(find "$root" \( -type f -o -type l \) -print0)
 }
 
 # --no-folding: link files only so apps writing siblings (e.g. hunk state.json)

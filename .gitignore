@@ -2,7 +2,8 @@
 *.env
 *.pem
 *.key
-secrets/
+/secrets/
+__pycache__/
 
 # Runtime state next to stowed configs (belt-and-suspenders if dir-folded)
 stow/hunk/.config/hunk/state.json
