@@ -113,12 +113,20 @@ done
 
 ensure_ansible
 
+# Ansible's become runs sudo non-interactively in its own session, so it cannot
+# reuse credentials cached by a `sudo` in this terminal. Without passwordless
+# sudo, let Ansible prompt once ("BECOME password") unless the caller already
+# chose how to supply it.
+BECOME_ARGS=()
 if ! sudo -n true 2>/dev/null; then
-  sudo true
+  case " ${ANSIBLE_ARGS[*]-} " in
+    *" -K "* | *" --ask-become-pass "* | *"ansible_become_pass"*) ;; # also matches ..._password
+    *) BECOME_ARGS=(--ask-become-pass) ;;
+  esac
 fi
 
 log "Running Ansible..."
-ansible-playbook -i "$ANSIBLE_DIR/inventory" "$ANSIBLE_DIR/site.yml" "${ANSIBLE_ARGS[@]}"
+ansible-playbook -i "$ANSIBLE_DIR/inventory" "$ANSIBLE_DIR/site.yml" "${BECOME_ARGS[@]}" "${ANSIBLE_ARGS[@]}"
 
 BWS_SEND_URL="${BWS_SEND_URL:-$BWS_SEND_URL_ARG}"
 export BWS_SEND_URL

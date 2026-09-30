@@ -12,6 +12,8 @@ sudo true
 exec zsh
 ```
 
+sudo: with passwordless sudo nothing is asked. Otherwise Ansible prompts once for `BECOME password` (your sudo password) — a `sudo` cached in the terminal can't be reused by Ansible's non-interactive sudo.
+
 Optional: `./setup.sh --bws-send-url 'https://send.bitwarden.com/#…'` — see [bws.md](bws.md).
 
 ## Partial runs
