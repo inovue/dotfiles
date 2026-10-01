@@ -55,7 +55,6 @@ TOKEN_FILE="$HOME/.config/inovue/bws-token"
 mkdir -p "$(dirname "$TOKEN_FILE")"
 ( umask 077 && printf '%s\n' "$TOKEN" >"$TOKEN_FILE" )
 chmod 600 "$TOKEN_FILE"
-rm -f "$HOME/.config/inovue/bws.env"   # 旧形式（export 行）
 
 echo "成功: $TOKEN_FILE にトークンを書き込みました。"
 echo "トークンはシェルに export されません（BWS_ACCESS_TOKEN_FILE でパスだけを参照）。"

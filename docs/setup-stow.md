@@ -64,7 +64,7 @@ Apps that rewrite their own JSON settings: don't stow — put the keys in `manag
 | Modal | `modal token new` |
 | Claude Code | `claude`（初回起動でログイン；ピンは `claude_code_pin`） |
 | gh-workspace | `gh workspace`（ピンは `gh_workspace_pin`、要 `gh auth login`；`shell-init` は v0.1.3 未対応） |
-| RTK | `./scripts/setup_rtk.sh` or `./setup.sh --tags tools`（Claude + Cursor hook、hook-only） |
+| RTK | `./scripts/setup_rtk.sh` or `./setup.sh --tags tools`（Claude hook のみ、hook-only） |
 | terminal-browser | `./setup.sh --tags terminal-browser`（kitty graphics 対応ターミナル） |
 | agent-browser | `./setup.sh --tags agent-browser`（[vercel-labs/agent-browser](https://github.com/vercel-labs/agent-browser)；ARM64 は CfT 手動取得、サーバは `--no-sandbox` 既定；公式 skill は `npx skills add … -g`） |
 | Bitwarden SM | [bws.md](bws.md) |

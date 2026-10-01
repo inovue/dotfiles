@@ -52,17 +52,6 @@ ensure_ansible() {
 
 run_bws_setup() {
   local token_file="${HOME}/.config/inovue/bws-token"
-  local legacy_env="${HOME}/.config/inovue/bws.env"
-
-  # Migrate the old `export BWS_ACCESS_TOKEN="..."` file to a token-only file.
-  if [ ! -s "$token_file" ] && [ -f "$legacy_env" ]; then
-    (umask 077 && sed -n 's/^\(export \)\{0,1\}BWS_ACCESS_TOKEN=["'\'']\{0,1\}\([^"'\'']*\)["'\'']\{0,1\}$/\2/p' "$legacy_env" \
-      | tail -n1 >"$token_file")
-    if [ -s "$token_file" ]; then
-      rm -f "$legacy_env"
-      log "Migrated bws.env -> bws-token"
-    fi
-  fi
 
   if [ -s "$token_file" ]; then
     log "BWS already configured, skipping"

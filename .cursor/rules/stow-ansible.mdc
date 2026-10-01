@@ -1,7 +1,0 @@
----
-description: Edit conventions for this dotfiles repo
-globs: stow/**/*,ansible/**/*,managed/**/*,scripts/**/*,setup.sh,stow.sh
-alwaysApply: false
----
-
-Follow `AGENTS.md` (single source for repo conventions).

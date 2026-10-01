@@ -17,16 +17,6 @@
     cache_valid_time: 3600
     lock_timeout: 120
 
-# Leftover from older machines that used the gierens eza PPA.
-- name: Remove leftover third-party eza apt source
-  become: true
-  ansible.builtin.file:
-    path: "{{ item }}"
-    state: absent
-  loop:
-    - /etc/apt/sources.list.d/gierens.list
-    - /etc/apt/keyrings/gierens.gpg
-
 - name: Install base packages
   become: true
   ansible.builtin.apt:

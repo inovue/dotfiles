@@ -173,7 +173,7 @@ exec with-secrets FOO_API_KEY -- foo "$@"
 
 ### トークン再発行（開発者）
 
-`setup.sh` は `~/.config/inovue/bws-token` があると bws 設定をスキップする（旧 `bws.env` は自動で移行）。トークン更新時は以下:
+`setup.sh` は `~/.config/inovue/bws-token` があると bws 設定をスキップする。トークン更新時は以下:
 
 1. 管理者から新しい Send URL を受け取る（旧トークンは Revoke 済みであること）
 2. 既存ファイルを削除して再設定:

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Post-setup health check: tool versions vs pins, secret hygiene, agent shell,
-# Claude/Cursor hooks. Prints one line per check; exit 1 if anything failed.
+# Claude hooks. Prints one line per check; exit 1 if anything failed.
 # Never prints secret values.
 set -uo pipefail
 
@@ -57,7 +57,6 @@ if [[ -n "${BWS_ACCESS_TOKEN:-}" ]]; then
 else
   ok "bws token not exported to the login shell"
 fi
-[[ -e "$HOME/.config/inovue/bws.env" ]] && ng "legacy ~/.config/inovue/bws.env still present (./setup.sh migrates it)"
 token_file="${BWS_ACCESS_TOKEN_FILE:-}"
 if [[ -z "$token_file" ]]; then
   ng "BWS_ACCESS_TOKEN_FILE not set (stow/zsh/.zshenv)"
@@ -88,8 +87,6 @@ grep -q 'BWS=set' <<<"$agent_out" && ng "agent shell exports BWS_ACCESS_TOKEN" |
 
 echo "== hooks / managed settings"
 grep -q 'rtk hook claude' "$HOME/.claude/settings.json" 2>/dev/null && ok "Claude RTK hook" || ng "Claude RTK hook missing"
-grep -q 'session-env.sh' "$HOME/.claude/settings.json" 2>/dev/null && ng "obsolete session-env hook still in ~/.claude/settings.json" || ok "no token-exporting Claude hook"
-grep -q 'rtk hook cursor' "$HOME/.cursor/hooks.json" 2>/dev/null && ok "Cursor RTK hook" || warn "Cursor RTK hook missing"
 [[ "$(readlink -f "$HOME/.claude/CLAUDE.md")" == "$ROOT_DIR/stow/claude/.claude/CLAUDE.md" ]] \
   && ok "$HOME/.claude/CLAUDE.md is stowed" || ng "$HOME/.claude/CLAUDE.md not stowed"
 

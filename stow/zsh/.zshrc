@@ -7,12 +7,12 @@ if [ -x "$HOME/.local/share/fnm/fnm" ]; then
 fi
 
 # ----------------------------------------
-# Coding agents stop here: Claude Code (CLAUDECODE), the Cursor editor agent
-# (CURSOR_AGENT), or anything exporting INOVUE_AGENT_SHELL=1.
+# Coding agents stop here: Claude Code (CLAUDECODE) or anything exporting
+# INOVUE_AGENT_SHELL=1.
 # They get plain POSIX tools — no `cd`→zoxide fuzzy jumps, no eza icons,
 # no prompt/plugin startup cost in their shell snapshots.
 # ----------------------------------------
-if [[ -n "${CLAUDECODE:-}${CURSOR_AGENT:-}${INOVUE_AGENT_SHELL:-}" ]]; then
+if [[ -n "${CLAUDECODE:-}${INOVUE_AGENT_SHELL:-}" ]]; then
   return 0
 fi
 

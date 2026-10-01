@@ -1,14 +1,13 @@
 #!/usr/bin/env bash
 # Install / update RTK (Rust Token Killer) via the official installer, then
-# register the global hooks so Claude Code and Cursor rewrite shell commands
-# through rtk. Hook-only: no RTK.md / CLAUDE.md edits (that file is stowed, and
-# its ~1KB of rtk meta docs would cost tokens every session).
+# register the global hook so Claude Code rewrites shell commands through rtk.
+# Hook-only: no RTK.md / CLAUDE.md edits (that file is stowed, and its ~1KB of
+# rtk meta docs would cost tokens every session).
 #
 # Official refs:
 #   https://github.com/rtk-ai/rtk
 #   https://www.rtk-ai.app/docs/getting-started/installation/
 #   Claude: rtk init -g --hook-only     →  ~/.claude/settings.json (also in managed/claude-settings.json)
-#   Cursor: rtk init -g --agent cursor  →  ~/.cursor/hooks.json
 #
 # Usage:
 #   ./scripts/setup_rtk.sh              # RTK_PIN if set, else GitHub latest
@@ -180,28 +179,21 @@ install_binary() {
 init_global_hooks() {
   local bin
   bin="$(rtk_bin)" || die "rtk not on PATH"
-  # Upstream quirk (<=0.48): atomic writes under ~/.claude and ~/.cursor
-  # without create_dir_all. https://github.com/rtk-ai/rtk/issues/2097
-  mkdir -p "${HOME}/.cursor" "${HOME}/.claude"
+  # Upstream quirk (<=0.48): atomic writes under ~/.claude without
+  # create_dir_all. https://github.com/rtk-ai/rtk/issues/2097
+  mkdir -p "${HOME}/.claude"
   log "Claude Code hook: rtk init -g --hook-only --auto-patch"
   "$bin" init -g --hook-only --auto-patch
-  log "Cursor hook: rtk init -g --agent cursor --hook-only --auto-patch"
-  "$bin" init -g --agent cursor --hook-only --auto-patch
 }
 
 verify() {
-  local bin hooks
+  local bin
   bin="$(rtk_bin)" || die "rtk not found after setup"
   is_token_killer || die "rtk gain failed after setup"
-  hooks="${HOME}/.cursor/hooks.json"
-  [[ -f "$hooks" ]] || die "missing $hooks after init"
-  if ! grep -q 'rtk hook cursor\|rtk-rewrite\.sh' "$hooks"; then
-    die "RTK preToolUse entry not found in $hooks"
-  fi
   grep -q 'rtk hook claude' "${HOME}/.claude/settings.json" \
     || die "RTK PreToolUse hook not found in ~/.claude/settings.json"
-  log "Verified: $("$bin" --version); hooks in ~/.claude/settings.json and $hooks"
-  log "Restart Claude Code / Cursor if a session is already open, then test with: git status"
+  log "Verified: $("$bin" --version); hook in ~/.claude/settings.json"
+  log "Restart Claude Code if a session is already open, then test with: git status"
 }
 
 main() {

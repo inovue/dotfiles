@@ -35,4 +35,4 @@ Ubuntu CLI only. Procedures → [setup-stow.md](setup-stow.md).
 ## Shell model
 
 - `.zshenv` (every zsh): PATH only — secret shims first, then `~/.local/bin`, fnm default Node, etc. No secrets.
-- `.zshrc`: fnm, then **returns early for coding agents** (`CLAUDECODE`, `CURSOR_AGENT`, `INOVUE_AGENT_SHELL`). Humans get aliases, zoxide `cd`, starship, sheldon, fzf.
+- `.zshrc`: fnm, then **returns early for coding agents** (`CLAUDECODE`, `INOVUE_AGENT_SHELL`). Humans get aliases, zoxide `cd`, starship, sheldon, fzf.
