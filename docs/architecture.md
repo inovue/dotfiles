@@ -12,7 +12,7 @@ Ubuntu CLI only. Procedures → [setup-stow.md](setup-stow.md).
 | Secrets | `stow/secrets/` | `with-secrets`, per-tool shims ([bws.md](bws.md)) |
 | Bootstrap | `setup.sh` | Ansible + optional bws token |
 | Day-to-day | `stow.sh` | `stow` / `unstow` / `restow` (conflicts → `~/.local/state/inovue/stow-backup/`) |
-| Health | `scripts/doctor.sh` | versions vs pins, secret hygiene, agent shell, hooks |
+| Health | `doctor.sh` | versions vs pins, secret hygiene, agent shell, hooks |
 
 ## Ansible roles
 

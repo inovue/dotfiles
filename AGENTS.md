@@ -21,7 +21,7 @@ Human onboarding: [README.md](README.md). Doc index: [docs/README.md](docs/READM
 | New secret-using CLI | shim in `stow/secrets/.local/share/inovue/shims/` | `./stow.sh restow secrets` |
 | Installer helpers | `scripts/` | — |
 
-Verify anything with `./scripts/doctor.sh`. CI runs shellcheck + ansible syntax (`.github/workflows/lint.yml`).
+Verify anything with `./doctor.sh`. CI runs shellcheck + ansible syntax (`.github/workflows/lint.yml`).
 
 ## Topic map
 

@@ -1,12 +1,14 @@
 #!/usr/bin/env bash
 # Post-setup health check: tool versions vs pins, secret hygiene, agent shell,
 # Claude hooks. Prints one line per check; exit 1 if anything failed.
-# Never prints secret values.
+# Never prints secret values. `--login` offers to run each missing tool login (needs a TTY).
 set -uo pipefail
 
-ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 VARS="$ROOT_DIR/ansible/group_vars/all.yml"
 fails=0
+DO_LOGIN=0
+[[ "${1:-}" == --login ]] && DO_LOGIN=1
 
 ok() { printf '  \033[32mok\033[0m   %s\n' "$*"; }
 ng() { printf '  \033[31mFAIL\033[0m %s\n' "$*"; fails=$((fails + 1)); }
@@ -44,6 +46,9 @@ check_version terminal-browser terminal_browser_pin terminal-browser --version
 check_version agent-browser agent_browser_pin agent-browser --version
 check_version hunk hunkdiff_pin hunk --version
 check_version modal modal_pin modal --version
+check_version wrangler wrangler_pin wrangler --version
+check_version slack-cli slack_cli_pin slack --version
+check_version gcloud gcloud_pin gcloud --version
 check_version gh-workspace gh_workspace_pin cat "$HOME/.local/share/gh/extensions/gh-workspace/manifest.yml"
 
 echo "== self-updating tools (present?)"
@@ -89,6 +94,32 @@ echo "== hooks / managed settings"
 grep -q 'rtk hook claude' "$HOME/.claude/settings.json" 2>/dev/null && ok "Claude RTK hook" || ng "Claude RTK hook missing"
 [[ "$(readlink -f "$HOME/.claude/CLAUDE.md")" == "$ROOT_DIR/stow/claude/.claude/CLAUDE.md" ]] \
   && ok "$HOME/.claude/CLAUDE.md is stowed" || ng "$HOME/.claude/CLAUDE.md not stowed"
+
+echo "== tool auth (warn only; --login walks through the missing ones)"
+# check_auth name "login cmd" url check_cmd...   (check exit 0 = logged in; output discarded)
+auth_probe() { # `timeout` cannot run shell functions
+  if [[ "$(type -t "$1")" == function ]]; then "$@" >/dev/null 2>&1; else timeout 30 "$@" >/dev/null 2>&1; fi
+}
+check_auth() {
+  local name="$1" login="$2" url="$3" a
+  shift 3
+  if ! command -v "$1" >/dev/null 2>&1; then warn "$name: not installed"; return; fi
+  if auth_probe "$@"; then ok "$name logged in"; return; fi
+  warn "$name not logged in — $login  ($url)"
+  [[ "$DO_LOGIN" == 1 && -t 0 ]] || return 0
+  read -r -p "       run '$login' now? [y/N] " a
+  [[ "$a" =~ ^[Yy]$ ]] || return 0
+  $login || true
+  if auth_probe "$@"; then ok "$name logged in"; else warn "$name still not logged in"; fi
+}
+slack_logged_in() { command -v slack >/dev/null && ! slack auth list 2>&1 | grep -qi 'not logged in'; }
+gcloud_logged_in() { [[ -n "$(gcloud auth list --format='value(account)' 2>/dev/null)" ]]; }
+check_auth gh "gh auth login" https://github.com/login/device gh auth status
+check_auth fly "flyctl auth login" https://fly.io/app/sign-in flyctl auth whoami
+check_auth modal "modal token new" https://modal.com/settings/tokens modal token info
+check_auth wrangler "wrangler login" https://dash.cloudflare.com/login wrangler whoami
+check_auth slack "slack login" https://slack.com/signin slack_logged_in
+check_auth gcloud "gcloud auth login --no-launch-browser" https://console.cloud.google.com gcloud_logged_in
 
 echo "== git"
 email="$(git config --global --get user.email || true)"

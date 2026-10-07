@@ -219,3 +219,38 @@
       cmd: |
         uv python install 3.12
         uv tool install --force --python 3.12 "modal=={{ modal_pin }}"
+
+# Slack CLI: release tarball holds a single static binary (bin/slack).
+- name: Install Slack CLI
+  ansible.builtin.include_tasks:
+    file: "{{ playbook_dir }}/tasks/curl_installer.yml"
+  vars:
+    installer:
+      name: slack-cli
+      pin: "{{ slack_cli_pin }}"
+      check: "{{ home }}/.local/bin/slack --version"
+      cmd: |
+        tmp="$(mktemp -d)"; trap 'rm -rf "$tmp"' EXIT
+        curl -fsSL -o "$tmp/slack.tgz" \
+          "https://downloads.slack-edge.com/slack-cli/slack_cli_{{ slack_cli_pin }}_linux_{{ slack_cli_arch }}.tar.gz"
+        tar -xzf "$tmp/slack.tgz" -C "$tmp" bin/slack
+        install -m 0755 "$tmp/bin/slack" "{{ home }}/.local/bin/slack"
+
+# Google Cloud CLI: versioned tarball, no rc/PATH edits (symlinked into ~/.local/bin).
+- name: Install Google Cloud CLI
+  ansible.builtin.include_tasks:
+    file: "{{ playbook_dir }}/tasks/curl_installer.yml"
+  vars:
+    installer:
+      name: gcloud
+      pin: "{{ gcloud_pin }}"
+      check: "{{ home }}/.local/bin/gcloud --version"
+      cmd: |
+        tmp="$(mktemp -d)"; trap 'rm -rf "$tmp"' EXIT
+        curl -fsSL -o "$tmp/gcloud.tgz" \
+          "https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-cli-{{ gcloud_pin }}-linux-{{ gcloud_arch }}.tar.gz"
+        rm -rf "{{ home }}/.local/share/google-cloud-sdk"
+        tar -xzf "$tmp/gcloud.tgz" -C "{{ home }}/.local/share"
+        "{{ home }}/.local/share/google-cloud-sdk/install.sh" --quiet \
+          --usage-reporting=false --path-update=false --command-completion=false --rc-path=/dev/null
+        ln -sfn "{{ home }}/.local/share/google-cloud-sdk/bin/gcloud" "{{ home }}/.local/bin/gcloud"

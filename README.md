@@ -12,7 +12,7 @@ git clone https://github.com/inovue/dotfiles.git
 cd dotfiles
 ./setup.sh
 exec zsh
-./scripts/doctor.sh
+./doctor.sh
 ```
 
 - 詳細・tags・ピン・Stow: [docs/setup-stow.md](docs/setup-stow.md)
@@ -31,6 +31,7 @@ Git の identity は `gh auth login` 後に `./setup.sh --tags git` で GitHub �
 | ツール | アクション |
 | --- | --- |
 | GitHub / Fly / Modal | `gh auth login`（→ `./setup.sh --tags git`）/ `fly auth login` / `modal token new` |
+| Cloudflare / Slack / GCP | `wrangler login` / `slack login` / `gcloud auth login` |
 | Bitwarden SM | [docs/bws.md](docs/bws.md) |
 | genmedia / その他 API キー | SM に登録 → `genmedia` はそのまま、他は `with-secrets KEY -- cmd` |
 

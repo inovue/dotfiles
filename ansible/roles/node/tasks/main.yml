@@ -51,3 +51,14 @@
       pin: "{{ bun_pin }}"
       check: "{{ home }}/.bun/bin/bun --version"
       cmd: curl -fsSL https://bun.sh/install | bash -s "bun-v{{ bun_pin }}"
+
+# Cloudflare Workers / Agents deploys (`wrangler login` or CLOUDFLARE_API_TOKEN).
+- name: Install wrangler
+  ansible.builtin.include_tasks:
+    file: "{{ playbook_dir }}/tasks/curl_installer.yml"
+  vars:
+    installer:
+      name: wrangler
+      pin: "{{ wrangler_pin }}"
+      check: wrangler --version
+      cmd: npm install -g "wrangler@{{ wrangler_pin }}"

@@ -39,6 +39,9 @@ rtk_pin: "0.48.0"
 gh_workspace_pin: "0.1.3"
 hunkdiff_pin: "0.22.0"
 modal_pin: "1.5.5"
+wrangler_pin: "4.148.0"
+slack_cli_pin: "4.9.0"
+gcloud_pin: "588.0.0"
 herdr_hunkdiff_pin: "0.3.0"
 
 # ---------------------------------------------------------------------------

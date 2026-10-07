@@ -34,7 +34,7 @@ SSOT: `ansible/group_vars/all.yml`. Policy (exact vs bootstrap): [architecture.m
 
 1. Bump the pin / version
 2. Re-run `./setup.sh` (or matching `--tags`) — it reinstalls and verifies `<tool> --version`
-3. `./scripts/doctor.sh`
+3. `./doctor.sh`
 
 ## Stow day-to-day
 
@@ -62,6 +62,9 @@ Apps that rewrite their own JSON settings: don't stow — put the keys in `manag
 | GitHub | `gh auth login` |
 | Fly | `fly auth login` |
 | Modal | `modal token new` |
+| Cloudflare | `wrangler login`（または `CLOUDFLARE_API_TOKEN`）→ Workers/Agents デプロイ |
+| Slack CLI | `slack login`（アプリ作成は manifest 経由） |
+| Google Cloud | `gcloud auth login` / `gcloud auth application-default login`、`gcloud services enable calendar-json.googleapis.com drive.googleapis.com` |
 | Claude Code | `claude`（初回起動でログイン；ピンは `claude_code_pin`） |
 | gh-workspace | `gh workspace`（ピンは `gh_workspace_pin`、要 `gh auth login`；`shell-init` は v0.1.3 未対応） |
 | RTK | `./scripts/setup_rtk.sh` or `./setup.sh --tags tools`（Claude hook のみ、hook-only） |
@@ -74,7 +77,7 @@ Apps that rewrite their own JSON settings: don't stow — put the keys in `manag
 ## Smoke
 
 ```bash
-./scripts/doctor.sh
+./doctor.sh
 ```
 
 ## Notes

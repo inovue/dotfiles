@@ -33,7 +33,7 @@ Ansible args pass through, e.g.:
   ./setup.sh --tags docker          # opt-in, not part of a plain run
   ./setup.sh -e git_user_name="Your Name" -e git_user_email="you@example.com"
 
-After success: run `exec zsh`, then ./scripts/doctor.sh.
+After success: run `exec zsh`, then ./doctor.sh.
 Docs: docs/setup-stow.md
 EOF
 }
@@ -121,4 +121,4 @@ BWS_SEND_URL="${BWS_SEND_URL:-$BWS_SEND_URL_ARG}"
 export BWS_SEND_URL
 run_bws_setup
 
-log "Setup finished. Next: exec zsh && ./scripts/doctor.sh"
+log "Setup finished. Next: exec zsh && ./doctor.sh"

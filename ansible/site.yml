@@ -27,6 +27,8 @@
         lazygit_arch: "{{ 'linux_x86_64' if ansible_facts['architecture'] == 'x86_64' else 'linux_arm64' }}"
         bws_arch: "{{ 'x86_64' if ansible_facts['architecture'] == 'x86_64' else 'aarch64' }}"
         glow_deb_arch: "{{ 'amd64' if ansible_facts['architecture'] in ['x86_64', 'amd64'] else 'arm64' }}"
+        slack_cli_arch: "{{ 'amd64' if ansible_facts['architecture'] in ['x86_64', 'amd64'] else 'arm64' }}"
+        gcloud_arch: "{{ 'x86_64' if ansible_facts['architecture'] in ['x86_64', 'amd64'] else 'arm' }}"
         trzsz_deb_arch: "{{ 'x86_64' if ansible_facts['architecture'] in ['x86_64', 'amd64'] else 'aarch64' }}"
       tags: always
 
@@ -54,5 +56,5 @@
           Configs: stow packages under stow/ (linked into $HOME).
           Day-to-day: ./stow.sh restow
           Run `exec zsh` to apply shell config.
-          Smoke: ./scripts/doctor.sh
+          Smoke: ./doctor.sh
       tags: always
