@@ -12,9 +12,8 @@
     # PATH for installer checks / post-install commands (Ansible does not read .zshenv).
     agent_tool_env:
       PATH: >-
-        {{ home }}/.local/bin:{{ home }}/.local/share/fnm:{{ home }}/.local/share/fnm/aliases/default/bin:{{
-        home }}/.bun/bin:{{ home }}/.fly/bin:{{ home }}/.genmedia/bin:{{ home }}/.local/share/pnpm/bin:{{
-        home }}/.local/share/pnpm:/usr/local/bin:/usr/bin:/bin
+        {{ home }}/.local/bin:{{ home }}/.local/share/pnpm/bin:{{ home }}/.local/share/pnpm:{{ home }}/.local/share/fnm:{{ home }}/.local/share/fnm/aliases/default/bin:{{
+        home }}/.bun/bin:{{ home }}/.fly/bin:{{ home }}/.genmedia/bin:/usr/local/bin:/usr/bin:/bin
       # Non-interactive installers: skip telemetry prompts.
       DISABLE_TELEMETRY: "1"
       RTK_TELEMETRY_DISABLED: "1"
