@@ -38,6 +38,7 @@ check_version uv uv_pin uv --version
 check_version pnpm pnpm_pin pnpm --version
 check_version bun bun_pin bun --version
 check_version lazygit lazygit_version lazygit --version
+check_version glab glab_version glab --version
 check_version bws bws_version /usr/local/bin/bws --version
 check_version ast-grep ast_grep_version ast-grep --version
 check_version rtk rtk_pin rtk --version

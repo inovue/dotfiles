@@ -1,6 +1,6 @@
 # Machine (managed in ~/dotfiles — edit stow/claude there, not ~/.claude)
 
-- Ubuntu + zsh. Available: rg, fd (`fdfind`), jq, ast-grep (structural search/replace), gh, sqlite3, psql, delta, uv, pnpm, bun.
+- Ubuntu + zsh. Available: rg, fd (`fdfind`), jq, ast-grep (structural search/replace), gh, glab, sqlite3, psql, delta, uv, pnpm, bun.
 - Bash output is compressed by RTK automatically; use `rtk proxy <cmd>` only when you need raw output.
 - RTK also reformats `ls` inside pipelines (adds sizes). To feed file names into other commands, use `find -printf` or `command ls`.
 - Browser work: agent-browser skill. Machine setup lives in ~/dotfiles (Ansible + Stow); follow its AGENTS.md.

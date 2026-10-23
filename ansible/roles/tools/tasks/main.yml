@@ -12,6 +12,19 @@
         curl -fsSL "https://github.com/jesseduffield/lazygit/releases/download/v{{ lazygit_version }}/lazygit_{{ lazygit_version }}_{{ lazygit_arch }}.tar.gz" \
           | tar -xz -C /usr/local/bin lazygit
 
+- name: Install glab (GitLab CLI)
+  ansible.builtin.include_tasks:
+    file: "{{ playbook_dir }}/tasks/curl_installer.yml"
+  vars:
+    installer:
+      name: glab
+      pin: "{{ glab_version }}"
+      become: true
+      check: /usr/local/bin/glab --version
+      cmd: |
+        curl -fsSL "https://gitlab.com/api/v4/projects/gitlab-org%2Fcli/packages/generic/glab/{{ glab_version }}/glab_{{ glab_version }}_{{ glab_arch }}.tar.gz" \
+          | tar -xz -C /usr/local/bin --strip-components=1 bin/glab
+
 - name: Install bws (Bitwarden Secrets Manager CLI)
   ansible.builtin.include_tasks:
     file: "{{ playbook_dir }}/tasks/curl_installer.yml"

@@ -26,6 +26,9 @@ glow_version: "3.0.0"
 trzsz_version: "1.2.0"
 ast_grep_version: "0.45.3"
 
+# GitLab release archives
+glab_version: "1.124.0"
+
 # Official installers that accept a version
 starship_pin: "1.26.0"
 fnm_pin: "1.39.0"
